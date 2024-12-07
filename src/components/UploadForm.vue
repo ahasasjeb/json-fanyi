@@ -1,0 +1,179 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { UploadCustomRequestOptions } from 'naive-ui'
+import { NUpload, NButton, NSpace, NCard, NProgress, useMessage } from 'naive-ui'
+
+const message = useMessage()
+const translatedContent = ref<string>('')
+const loading = ref(false)
+const progress = ref(0)
+const currentKey = ref('')
+const originalFileName = ref('')
+
+const customRequest = async ({ file }: UploadCustomRequestOptions) => {
+  loading.value = true
+  progress.value = 0
+  translatedContent.value = ''
+  currentKey.value = ''
+  originalFileName.value = file.file?.name || 'translated.json'
+
+  const formData = new FormData()
+  formData.append('file', file.file as File)
+
+  try {
+    // First send the file using POST
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error('上传失败')
+    }
+
+    // Then establish SSE connection for progress updates
+    const eventSource = new EventSource(
+      `/api/translate/progress?id=${response.headers.get('X-Translation-Id')}`,
+    )
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+
+      switch (data.type) {
+        case 'progress':
+          progress.value = data.percentage
+          if (data.lastTranslated) {
+            currentKey.value = `正在翻译: ${data.lastTranslated.key}`
+          }
+          break
+
+        case 'error':
+          if (data.key) {
+            message.warning(`翻译 "${data.key}" 时出错: ${data.error}`)
+          } else {
+            message.error('翻译失败：' + data.error)
+            eventSource.close()
+            loading.value = false
+          }
+          break
+
+        case 'complete':
+          translatedContent.value = JSON.stringify(data.translatedContent, null, 2)
+          message.success('翻译完成！')
+          eventSource.close()
+          loading.value = false
+          break
+      }
+    }
+
+    eventSource.onerror = () => {
+      message.error('连接中断')
+      eventSource.close()
+      loading.value = false
+    }
+  } catch (error) {
+    message.error('上传失败：' + (error as Error).message)
+    loading.value = false
+  }
+}
+
+const saveToFile = () => {
+  if (!translatedContent.value) {
+    message.warning('没有可保存的翻译内容')
+    return
+  }
+
+  // 创建 Blob 对象
+  const blob = new Blob([translatedContent.value], { type: 'application/json' })
+
+  // 创建下载链接
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+
+  // 生成文件名（在原文件名前添加 translated_ 前缀）
+  const fileName = originalFileName.value.replace('.json', '_translated.json')
+  link.download = fileName
+
+  // 触发下载
+  document.body.appendChild(link)
+  link.click()
+
+  // 清理
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
+  message.success('文件已保存！')
+}
+</script>
+
+<template>
+  <div class="container">
+    <n-card title="JSON 翻译工具">
+      <p>
+        上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。
+        如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。
+        使用gpt-4o-mini进行翻译。
+      </p>
+      <n-space vertical>
+        <n-space>
+          <n-upload
+            accept=".json"
+            :max-size="3 * 1024 * 1024"
+            :custom-request="customRequest"
+            :show-file-list="false"
+          >
+            <n-button :loading="loading">
+              {{ loading ? '翻译中...' : '上传 JSON 文件' }}
+            </n-button>
+          </n-upload>
+
+          <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
+            保存翻译结果
+          </n-button>
+        </n-space>
+
+        <template v-if="loading">
+          <n-progress
+            type="line"
+            :percentage="progress"
+            :height="24"
+            indicator-placement="inside"
+            processing
+          >
+            {{ `${progress}%` }}
+          </n-progress>
+          <div class="current-key" v-if="currentKey">
+            {{ currentKey }}
+          </div>
+        </template>
+
+        <div v-if="translatedContent" class="result">
+          <pre>{{ translatedContent }}</pre>
+        </div>
+      </n-space>
+    </n-card>
+  </div>
+</template>
+
+<style scoped>
+.current-key {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.result {
+  margin-top: 1rem;
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.result pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+}
+</style>

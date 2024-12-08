@@ -25,8 +25,23 @@
       content="免费在线JSON翻译工具，支持JSON格式化、多语言翻译、语法检查等功能。"
     />
     <link rel="canonical" href="https://json.lvjia.cc/" />
+    <style>
+      #loading-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-message">页面加载中，等等吧，等JS传过来...</div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

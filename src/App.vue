@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { NConfigProvider, NMessageProvider } from 'naive-ui'
 import UploadForm from './components/UploadForm.vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  const loadingMessage = document.getElementById('loading-message')
+  if (loadingMessage) {
+    setTimeout(() => {
+      loadingMessage.style.display = 'none'
+    }, 800)
+  }
+})
 </script>
 
 <template>

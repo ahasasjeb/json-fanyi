@@ -196,22 +196,16 @@ const saveToFile = () => {
         使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
       </p>
       <n-space vertical>
-        <div class="upload-area">
-          <n-upload
-            accept=".json"
-            :max-size="3 * 1024 * 1024"
-            :custom-request="customRequest"
-            :show-file-list="false"
-            directory-dnd
-          >
-            <div class="upload-trigger">
-              <n-button :loading="loading" class="upload-button">
-                {{ loading ? '翻译中...' : '点击或拖拽上传 JSON 文件' }}
-              </n-button>
-              <p class="upload-tip">支持点击或拖拽上传，单个文件不超过3MB</p>
-            </div>
-          </n-upload>
-        </div>
+        <n-upload
+          accept=".json"
+          :max-size="3 * 1024 * 1024"
+          :custom-request="customRequest"
+          :show-file-list="false"
+        >
+          <n-button :loading="loading">
+            {{ loading ? '翻译中...' : '上传 JSON 文件' }}
+          </n-button>
+        </n-upload>
 
         <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
           保存翻译结果
@@ -241,40 +235,6 @@ const saveToFile = () => {
 </template>
 
 <style scoped>
-.upload-area {
-  border: 2px dashed #d9d9d9;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  background: #fafafa;
-  transition:
-    border-color 0.3s,
-    background-color 0.3s;
-  cursor: pointer;
-}
-
-.upload-area:hover {
-  border-color: #18a058;
-  background: #f0f9f4;
-}
-
-.upload-trigger {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.upload-button {
-  min-width: 200px;
-}
-
-.upload-tip {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
-}
-
 .current-key {
   margin-top: 8px;
   font-size: 14px;

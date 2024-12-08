@@ -112,8 +112,8 @@ const saveToFile = () => {
     <n-card title="JSON 翻译工具">
       <p>
         上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。
-        如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。
-        使用gpt-4o-mini进行翻译。
+        如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。<br />
+        使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。
       </p>
       <n-space vertical>
         <n-space>

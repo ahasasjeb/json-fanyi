@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
 import { NUpload, NButton, NSpace, NCard, NProgress, useMessage } from 'naive-ui'
 
@@ -9,18 +9,88 @@ const loading = ref(false)
 const progress = ref(0)
 const currentKey = ref('')
 const originalFileName = ref('')
+const currentEventSource = ref<EventSource | null>(null)
+const currentReader = ref<FileReader | null>(null)
+
+// 关闭当前的 EventSource 连接
+const closeCurrentEventSource = () => {
+  if (currentEventSource.value) {
+    currentEventSource.value.close()
+    currentEventSource.value = null
+  }
+}
+
+// 清理当前的 FileReader
+const cleanupCurrentReader = () => {
+  if (currentReader.value) {
+    currentReader.value.onload = null
+    currentReader.value.onerror = null
+    currentReader.value = null
+  }
+}
+
+// 客户端验证 JSON 格式
+const validateJson = (file: File): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    // 清理之前的 FileReader
+    cleanupCurrentReader()
+
+    const reader = new FileReader()
+    currentReader.value = reader
+
+    reader.onload = (e) => {
+      try {
+        const content = JSON.parse(e.target?.result as string)
+
+        // 验证是否为对象
+        if (typeof content !== 'object' || Array.isArray(content)) {
+          reject(new Error('JSON 必须是一个对象，不能是数组或其他类型'))
+          return
+        }
+
+        // 验证是否只有单层键值对
+        for (const [key, value] of Object.entries(content)) {
+          if (typeof value !== 'string') {
+            reject(new Error(`键 "${key}" 的值必须是字符串，不允许嵌套对象或数组`))
+            return
+          }
+        }
+
+        resolve(true)
+      } catch (error) {
+        reject(new Error('无效的 JSON 格式'))
+      } finally {
+        cleanupCurrentReader()
+      }
+    }
+
+    reader.onerror = () => {
+      reject(new Error('文件读取失败'))
+      cleanupCurrentReader()
+    }
+
+    reader.readAsText(file)
+  })
+}
 
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
+  // 关闭之前的连接和清理
+  closeCurrentEventSource()
+  cleanupCurrentReader()
+
   loading.value = true
   progress.value = 0
   translatedContent.value = ''
   currentKey.value = ''
   originalFileName.value = file.file?.name || 'translated.json'
 
-  const formData = new FormData()
-  formData.append('file', file.file as File)
-
   try {
+    // 先在客户端验证 JSON 格式
+    await validateJson(file.file as File)
+
+    const formData = new FormData()
+    formData.append('file', file.file as File)
+
     // First send the file using POST
     const response = await fetch('/api/translate', {
       method: 'POST',
@@ -28,13 +98,17 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     })
 
     if (!response.ok) {
-      throw new Error('上传失败')
+      const errorData = await response.json()
+      throw new Error(errorData.error || '上传失败')
     }
 
     // Then establish SSE connection for progress updates
     const eventSource = new EventSource(
       `/api/translate/progress?id=${response.headers.get('X-Translation-Id')}`,
     )
+
+    // 保存当前的 EventSource
+    currentEventSource.value = eventSource
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data)
@@ -51,8 +125,8 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           if (data.key) {
             message.warning(`翻译 "${data.key}" 时出错: ${data.error}`)
           } else {
-            message.error('翻译失败：' + data.error)
-            eventSource.close()
+            message.error(data.error || '翻译失败')
+            closeCurrentEventSource()
             loading.value = false
           }
           break
@@ -60,7 +134,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
         case 'complete':
           translatedContent.value = JSON.stringify(data.translatedContent, null, 2)
           message.success('翻译完成！')
-          eventSource.close()
+          closeCurrentEventSource()
           loading.value = false
           break
       }
@@ -68,14 +142,20 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
     eventSource.onerror = () => {
       message.error('连接中断')
-      eventSource.close()
+      closeCurrentEventSource()
       loading.value = false
     }
   } catch (error) {
-    message.error('上传失败：' + (error as Error).message)
+    message.error((error as Error).message)
     loading.value = false
   }
 }
+
+// 组件卸载时关闭连接
+onUnmounted(() => {
+  closeCurrentEventSource()
+  cleanupCurrentReader()
+})
 
 const saveToFile = () => {
   if (!translatedContent.value) {
@@ -116,22 +196,26 @@ const saveToFile = () => {
         使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
       </p>
       <n-space vertical>
-        <n-space>
+        <div class="upload-area">
           <n-upload
             accept=".json"
             :max-size="3 * 1024 * 1024"
             :custom-request="customRequest"
             :show-file-list="false"
+            directory-dnd
           >
-            <n-button :loading="loading">
-              {{ loading ? '翻译中...' : '上传 JSON 文件' }}
-            </n-button>
+            <div class="upload-trigger">
+              <n-button :loading="loading" class="upload-button">
+                {{ loading ? '翻译中...' : '点击或拖拽上传 JSON 文件' }}
+              </n-button>
+              <p class="upload-tip">支持点击或拖拽上传，单个文件不超过3MB</p>
+            </div>
           </n-upload>
+        </div>
 
-          <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
-            保存翻译结果
-          </n-button>
-        </n-space>
+        <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
+          保存翻译结果
+        </n-button>
 
         <template v-if="loading">
           <n-progress
@@ -157,6 +241,40 @@ const saveToFile = () => {
 </template>
 
 <style scoped>
+.upload-area {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background: #fafafa;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  border-color: #18a058;
+  background: #f0f9f4;
+}
+
+.upload-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-button {
+  min-width: 200px;
+}
+
+.upload-tip {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
 .current-key {
   margin-top: 8px;
   font-size: 14px;

@@ -241,7 +241,7 @@ async function processTranslation(translationId) {
 
   try {
     const data = JSON.parse(await fs.readFile(translation.inputPath, 'utf8'))
-    
+
     // 验证 JSON 结构
     try {
       validateJsonStructure(data)

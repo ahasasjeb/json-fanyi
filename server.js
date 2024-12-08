@@ -54,6 +54,13 @@ const limit = pLimit(3)
 // Add delay between retries
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+// 随机选择模型
+function getRandomModel() {
+  const models = ['gpt-4o-mini', 'deepseek-chat']
+  const randomIndex = Math.floor(Math.random() * models.length)
+  return models[randomIndex]
+}
+
 async function translateValue(text, key, context = null) {
   let attempts = 0
 
@@ -81,7 +88,7 @@ async function translateValue(text, key, context = null) {
       messages.push({ role: 'user', content: `请翻译：${text}` })
 
       const response = await client.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: getRandomModel(),
         messages: messages,
         temperature: 0.3,
       })

@@ -128,6 +128,20 @@ function getSimilarTranslations(currentKey, data, translatedData, maxContext = 5
   return context
 }
 
+// 验证 JSON 格式：只允许单层键值对，值必须是字符串
+function validateJsonStructure(data) {
+  if (typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('JSON 必须是一个对象')
+  }
+
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value !== 'string') {
+      throw new Error(`键 "${key}" 的值必须是字符串，不允许嵌套对象或数组`)
+    }
+  }
+  return true
+}
+
 // Store active translations
 const activeTranslations = new Map()
 
@@ -227,6 +241,20 @@ async function processTranslation(translationId) {
 
   try {
     const data = JSON.parse(await fs.readFile(translation.inputPath, 'utf8'))
+    
+    // 验证 JSON 结构
+    try {
+      validateJsonStructure(data)
+    } catch (error) {
+      translation.status = 'error'
+      translation.error = error.message
+      notifyClients(translationId, {
+        type: 'error',
+        error: error.message,
+      })
+      throw error
+    }
+
     const translatedData = {}
     const entries = Object.entries(data)
     const total = entries.length

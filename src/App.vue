@@ -8,7 +8,7 @@ onMounted(() => {
   if (loadingMessage) {
     setTimeout(() => {
       loadingMessage.style.display = 'none'
-    }, 800)
+    }, 200)
   }
 })
 </script>

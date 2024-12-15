@@ -17,7 +17,7 @@ export default defineComponent({
         if (['info', 'success', 'warning', 'error'].includes(type)) {
           notification[type as NotificationType]({
             content: '2024-12-15',
-            meta: '进一步完善后端提示词，更换gpt-4o-mini到更可靠的渠道',
+            meta: '进一步完善后端提示词，更换gpt-4o-mini到更可靠的渠道，进一步优化前端js文件',
             duration: 2500,
             keepAliveOnHover: true,
           })

@@ -11,6 +11,8 @@ const currentKey = ref('')
 const originalFileName = ref('')
 const currentEventSource = ref<EventSource | null>(null)
 const currentReader = ref<FileReader | null>(null)
+const contentChunks = ref<string[]>([])
+const totalChunks = ref(0)
 
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
@@ -83,6 +85,8 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
   translatedContent.value = ''
   currentKey.value = ''
   originalFileName.value = file.file?.name || 'translated.json'
+  contentChunks.value = []
+  totalChunks.value = 0
 
   try {
     // 先在客户端验证 JSON 格式
@@ -121,6 +125,32 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           }
           break
 
+        case 'chunk':
+          // Initialize chunks array if this is the first chunk
+          if (data.chunkIndex === 0) {
+            contentChunks.value = new Array(data.totalChunks)
+            totalChunks.value = data.totalChunks
+          }
+
+          // Store the chunk
+          contentChunks.value[data.chunkIndex] = data.data
+
+          // If we have all chunks, combine them and parse
+          if (contentChunks.value.filter(Boolean).length === totalChunks.value) {
+            try {
+              const fullContent = contentChunks.value.join('')
+              translatedContent.value = JSON.stringify(JSON.parse(fullContent), null, 2)
+              // Clear chunks array
+              contentChunks.value = []
+              totalChunks.value = 0
+            } catch (error) {
+              message.error('处理翻译数据时出错')
+              closeCurrentEventSource()
+              loading.value = false
+            }
+          }
+          break
+
         case 'error':
           if (data.key) {
             message.warning(`翻译 "${data.key}" 时出错: ${data.error}`)
@@ -132,7 +162,12 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           break
 
         case 'complete':
-          translatedContent.value = JSON.stringify(data.translatedContent, null, 2)
+          if (!translatedContent.value) {
+            message.error('未收到完整的翻译内容')
+            closeCurrentEventSource()
+            loading.value = false
+            return
+          }
           message.success('翻译完成！')
           closeCurrentEventSource()
           loading.value = false

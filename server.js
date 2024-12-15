@@ -307,23 +307,40 @@ async function processTranslation(translationId) {
     // Wait for all translations to complete
     await Promise.all(translations)
 
-    // Save the result
-    const outputPath = translation.inputPath.replace('.json', '_translated.json')
-    await fs.writeFile(outputPath, JSON.stringify(translatedData, null, 2), 'utf8')
-
     // Update status and notify clients
     translation.status = 'complete'
+
+    // Split large translation content into chunks
+    const contentStr = JSON.stringify(translatedData)
+    const chunkSize = 16384 // 16KB chunks
+    const chunks = Math.ceil(contentStr.length / chunkSize)
+
+    for (let i = 0; i < chunks; i++) {
+      const chunk = contentStr.slice(i * chunkSize, (i + 1) * chunkSize)
+      notifyClients(translationId, {
+        type: 'chunk',
+        chunkIndex: i,
+        totalChunks: chunks,
+        data: chunk,
+        completed,
+        total,
+        percentage: 100,
+      })
+      // Add a small delay between chunks to prevent overwhelming the connection
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    // Send final completion message without the full content
     notifyClients(translationId, {
       type: 'complete',
       completed,
       total,
       percentage: 100,
-      translatedContent: translatedData,
     })
 
     // Schedule cleanup
     scheduleFileDeletion(translation.inputPath)
-    scheduleFileDeletion(outputPath)
+    scheduleFileDeletion(translation.inputPath.replace('.json', '_translated.json'))
   } catch (error) {
     translation.status = 'error'
     translation.error = error.message

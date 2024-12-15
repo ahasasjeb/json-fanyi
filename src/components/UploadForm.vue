@@ -2,6 +2,7 @@
 import { ref, onUnmounted } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
 import { NUpload, NButton, NSpace, NCard, NProgress, useMessage } from 'naive-ui'
+import TZ from './TZ.vue'
 
 const message = useMessage()
 const translatedContent = ref<string>('')
@@ -237,7 +238,18 @@ const saveToFile = () => {
         如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。<br />
         使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
       </p>
-      <n-space vertical>
+      <n-loading-bar-provider>
+        <n-message-provider>
+          <n-notification-provider>
+            <n-modal-provider>
+              <n-dialog-provider>
+                <TZ />
+              </n-dialog-provider>
+            </n-modal-provider>
+          </n-notification-provider>
+        </n-message-provider>
+      </n-loading-bar-provider>
+      <n-space :size="12" horizontal>
         <n-upload
           accept=".json"
           :max-size="3 * 1024 * 1024"
@@ -252,30 +264,29 @@ const saveToFile = () => {
         <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
           保存翻译结果
         </n-button>
-
-        <template v-if="loading">
-          <n-progress
-            type="line"
-            :percentage="progress"
-            :height="24"
-            indicator-placement="inside"
-            processing
-          >
-            {{ `${progress}%` }}
-          </n-progress>
-          <div class="current-key" v-if="currentKey">
-            {{ currentKey }}
-          </div>
-        </template>
-
-        <div v-if="translatedContent" class="result">
-          <pre>{{ translatedContent }}</pre>
-        </div>
       </n-space>
+
+      <template v-if="loading">
+        <n-progress
+          type="line"
+          :percentage="progress"
+          :height="24"
+          indicator-placement="inside"
+          processing
+        >
+          {{ `${progress}%` }}
+        </n-progress>
+        <div class="current-key" v-if="currentKey">
+          {{ currentKey }}
+        </div>
+      </template>
+
+      <div v-if="translatedContent" class="result">
+        <pre>{{ translatedContent }}</pre>
+      </div>
     </n-card>
   </div>
 </template>
-
 <style scoped>
 .current-key {
   margin-top: 8px;

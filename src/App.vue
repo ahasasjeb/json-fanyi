@@ -15,9 +15,17 @@ onMounted(() => {
 
 <template>
   <n-config-provider>
-    <n-message-provider>
-      <upload-form />
-    </n-message-provider>
+    <n-loading-bar-provider>
+      <n-message-provider>
+        <n-notification-provider>
+          <n-modal-provider>
+            <n-dialog-provider>
+              <upload-form />
+            </n-dialog-provider>
+          </n-modal-provider>
+        </n-notification-provider>
+      </n-message-provider>
+    </n-loading-bar-provider>
   </n-config-provider>
 </template>
 

@@ -163,27 +163,34 @@ const saveToFile = () => {
     return
   }
 
-  // 创建 Blob 对象
-  const blob = new Blob([translatedContent.value], { type: 'application/json' })
+  try {
+    // 创建 Blob 对象
+    const blob = new Blob([translatedContent.value], { type: 'application/json;charset=utf-8' })
 
-  // 创建下载链接
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
+    // 创建下载链接
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.style.display = 'none'
 
-  // 生成文件名（在原文件名前添加 translated_ 前缀）
-  const fileName = originalFileName.value.replace('.json', '_translated.json')
-  link.download = fileName
+    // 生成文件名（在原文件名前添加 translated_ 前缀）
+    const fileName = originalFileName.value.replace('.json', '_translated.json')
+    link.download = fileName
 
-  // 触发下载
-  document.body.appendChild(link)
-  link.click()
+    // 触发下载
+    document.body.appendChild(link)
+    link.click()
 
-  // 清理
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+    // 延迟清理，确保下载开始
+    setTimeout(() => {
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }, 100)
 
-  message.success('文件已保存！')
+    message.success('文件已保存！')
+  } catch (error) {
+    message.error('保存文件失败：' + (error as Error).message)
+  }
 }
 </script>
 

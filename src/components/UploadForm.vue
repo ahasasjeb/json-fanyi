@@ -3,8 +3,10 @@ import { ref, onUnmounted, onMounted } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
 import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal } from 'naive-ui'
 import TZ from './TZ.vue'
+import { useVisitorStore } from '../stores/visitor'
 
 const message = useMessage()
+const visitorStore = useVisitorStore()
 const translatedContent = ref<string>('')
 const loading = ref(false)
 const progress = ref(0)
@@ -104,7 +106,8 @@ const handleTrackingConsent = (agreed: boolean) => {
   showTrackingDialog.value = false
   if (agreed) {
     // 这里可以添加统计代码，比如发送请求到统计服务器
-    message.success('感谢您的支持！')
+    message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
+    console.log('访问者ID:', visitorStore.visitorId)
   }
 }
 

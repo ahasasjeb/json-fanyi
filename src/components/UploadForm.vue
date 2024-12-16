@@ -129,6 +129,11 @@ const sendFingerprint = async (fingerprint: string) => {
       body: JSON.stringify({ fingerprint }),
     })
 
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || '发送指纹失败')
+    }
+
     const result = await response.json()
     console.log(result.message)
   } catch (error) {

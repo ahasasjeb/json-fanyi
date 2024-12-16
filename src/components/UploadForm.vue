@@ -105,7 +105,8 @@ const handleTrackingConsent = (agreed: boolean) => {
   localStorage.setItem('userTrackingConsent', agreed.toString())
   showTrackingDialog.value = false
   if (agreed) {
-    // 这里可以添加统计代码，比如发送请求到统计服务器
+    // 发送指纹数据到后端
+    sendFingerprint(visitorStore.visitorId)
     message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
     console.log('访问者ID:', visitorStore.visitorId)
   }
@@ -115,6 +116,25 @@ const handleTrackingConsent = (agreed: boolean) => {
 onMounted(() => {
   checkTrackingConsent()
 })
+
+// 收集指纹数据并发送到后端
+const sendFingerprint = async (fingerprint: string) => {
+  try {
+    const response = await fetch('https://zw.lvjia.cc/index.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Referer: 'https://json.lvjia.cc/',
+      },
+      body: JSON.stringify({ fingerprint }),
+    })
+
+    const result = await response.json()
+    console.log(result.message)
+  } catch (error) {
+    console.error('Failed to send fingerprint:', error)
+  }
+}
 
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
   // 如果 DNT 未开启且用户未做出选择，显示对话框
@@ -351,6 +371,7 @@ const saveToFile = () => {
     </n-card>
   </div>
 </template>
+
 <style scoped>
 .current-key {
   margin-top: 8px;

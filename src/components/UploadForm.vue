@@ -113,8 +113,28 @@ const handleTrackingConsent = (agreed: boolean) => {
 }
 
 // 在组件挂载时检查用户同意状态
-onMounted(() => {
-  checkTrackingConsent()
+onMounted(async () => {
+  const storedConsent = localStorage.getItem('userTrackingConsent')
+  if (storedConsent === 'true') {
+    hasUserConsent.value = true
+    // 等待指纹计算完成
+    await new Promise<void>((resolve) => {
+      const checkVisitorId = () => {
+        if (visitorStore.visitorId) {
+          // 发送指纹数据到后端
+          sendFingerprint(visitorStore.visitorId)
+          message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
+          console.log('访问者ID:', visitorStore.visitorId)
+          resolve()
+        } else {
+          setTimeout(checkVisitorId, 100) // 每100ms检查一次
+        }
+      }
+      checkVisitorId()
+    })
+  } else {
+    checkTrackingConsent()
+  }
 })
 
 // 收集指纹数据并发送到后端

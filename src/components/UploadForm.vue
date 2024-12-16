@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, onMounted } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
-import { NUpload, NButton, NSpace, NCard, NProgress, useMessage } from 'naive-ui'
+import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal } from 'naive-ui'
 import TZ from './TZ.vue'
 
 const message = useMessage()
@@ -14,6 +14,8 @@ const currentEventSource = ref<EventSource | null>(null)
 const currentReader = ref<FileReader | null>(null)
 const contentChunks = ref<string[]>([])
 const totalChunks = ref(0)
+const showTrackingDialog = ref(false)
+const hasUserConsent = ref(false)
 
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
@@ -76,7 +78,47 @@ const validateJson = (file: File): Promise<boolean> => {
   })
 }
 
+// 检查 Do Not Track 设置和用户同意状态
+const checkTrackingConsent = () => {
+  if (navigator.doNotTrack === '1') {
+    message.success('已启用请勿追踪，我们将不会收集任何统计信息')
+    return true
+  }
+  // 检查本地存储中的用户同意状态
+  const storedConsent = localStorage.getItem('userTrackingConsent')
+  if (storedConsent === 'false') {
+    hasUserConsent.value = false
+    return false
+  }
+  if (storedConsent === 'true') {
+    hasUserConsent.value = true
+    return true
+  }
+  showTrackingDialog.value = true
+  return false
+}
+
+const handleTrackingConsent = (agreed: boolean) => {
+  hasUserConsent.value = agreed
+  localStorage.setItem('userTrackingConsent', agreed.toString())
+  showTrackingDialog.value = false
+  if (agreed) {
+    // 这里可以添加统计代码，比如发送请求到统计服务器
+    message.success('感谢您的支持！')
+  }
+}
+
+// 在组件挂载时检查用户同意状态
+onMounted(() => {
+  checkTrackingConsent()
+})
+
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
+  // 如果 DNT 未开启且用户未做出选择，显示对话框
+  if (!navigator.doNotTrack && !localStorage.getItem('userTrackingConsent')) {
+    showTrackingDialog.value = true
+  }
+
   // 关闭之前的连接和清理
   closeCurrentEventSource()
   cleanupCurrentReader()
@@ -284,6 +326,25 @@ const saveToFile = () => {
       <div v-if="translatedContent" class="result">
         <pre>{{ translatedContent }}</pre>
       </div>
+      <n-modal
+        v-model:show="showTrackingDialog"
+        preset="dialog"
+        title="访问统计"
+        positive-text="同意"
+        negative-text="拒绝"
+        @positive-click="() => handleTrackingConsent(true)"
+        @negative-click="() => handleTrackingConsent(false)"
+        :closable="false"
+        :mask-closable="false"
+      >
+        <p>是否允许统计真实用户人数？</p>
+        <p style="font-size: 0.9em; color: #666">我们承诺：</p>
+        <ul style="font-size: 0.9em; color: #666">
+          <li>仅收集匿名访问数据</li>
+          <li>不会收集任何个人身份信息</li>
+          <li>数据仅用于统计访问人数</li>
+        </ul>
+      </n-modal>
     </n-card>
   </div>
 </template>

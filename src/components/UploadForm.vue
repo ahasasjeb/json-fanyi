@@ -18,6 +18,7 @@ const contentChunks = ref<string[]>([])
 const totalChunks = ref(0)
 const showTrackingDialog = ref(false)
 const hasUserConsent = ref(false)
+const JavaMc = ref(false)
 
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
@@ -35,7 +36,6 @@ const cleanupCurrentReader = () => {
     currentReader.value = null
   }
 }
-
 // 客户端验证 JSON 格式
 const validateJson = (file: File): Promise<boolean> => {
   return new Promise((resolve, reject) => {
@@ -334,6 +334,18 @@ const saveToFile = () => {
         上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。
         如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。<br />
         使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
+        <br />Minecraft模组苦苦汉化？上传到这里自动汉化翻译Java版Minecraft模组。对于基岩版，可以通过邮箱
+        <code
+          style="
+            background-color: #2d2d2d; /* 深色背景 */
+            color: #f8f8f2; /* 文字颜色 */
+            font-family: 'Courier New', monospace; /* 使用等宽字体 */
+            padding: 5px 10px;
+            border-radius: 4px;
+          "
+          >h@lvjia.cc</code
+        >
+        来告诉我，需要的人多就开发一个。
       </p>
       <n-loading-bar-provider>
         <n-message-provider>
@@ -346,6 +358,7 @@ const saveToFile = () => {
           </n-notification-provider>
         </n-message-provider>
       </n-loading-bar-provider>
+      <n-button @click="JavaMc = true"> Java版模组翻译教程 </n-button>
       <n-space :size="12" horizontal>
         <n-upload
           accept=".json"
@@ -363,6 +376,12 @@ const saveToFile = () => {
         </n-button>
       </n-space>
 
+      <n-drawer v-model:show="JavaMc" :width="502">
+        <n-drawer-content title="Java版模组翻译教程" closable>
+          下载一个压缩软件，例如 7-zip，右键jar打开或者解压，找到 assets
+          文件夹，里面就是模组的资源文件。<br />assets里，会有个名字非Minecraft的文件夹，打开它，里面的json就是语言文件。<br />将其上传到这个网站，翻译完后保存，重命名为zh_cn.json，拖动放进去。<br />如果你解压了，就重新压缩为普通zip格式，确保压缩后的一级目录不是单个文件夹，大概率就是压缩成功了，把后缀改成jar。
+        </n-drawer-content>
+      </n-drawer>
       <template v-if="loading">
         <n-progress
           type="line"

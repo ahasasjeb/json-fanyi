@@ -15,6 +15,8 @@ declare module 'vue' {
     IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NDialogProvider: typeof import('naive-ui')['NDialogProvider']
+    NDrawer: typeof import('naive-ui')['NDrawer']
+    NDrawerContent: typeof import('naive-ui')['NDrawerContent']
     NLoadingBarProvider: typeof import('naive-ui')['NLoadingBarProvider']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
     NModalProvider: typeof import('naive-ui')['NModalProvider']

@@ -122,10 +122,17 @@ onMounted(async () => {
       const checkVisitorId = () => {
         if (visitorStore.visitorId) {
           // 发送指纹数据到后端
-          sendFingerprint(visitorStore.visitorId)
-          message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
-          console.log('访问者ID:', visitorStore.visitorId)
-          resolve()
+          if (navigator.doNotTrack === '1') {
+            message.success(
+              '已启用请勿追踪，虽然曾经同意过，但现在开启了DNT，我们将不会收集任何统计信息',
+            )
+            console.log('用户曾经同意过，但现在开启了DNT')
+          } else {
+            sendFingerprint(visitorStore.visitorId)
+            message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
+            console.log('访问者ID:', visitorStore.visitorId)
+            resolve()
+          }
         } else {
           setTimeout(checkVisitorId, 100) // 每100ms检查一次
         }

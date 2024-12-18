@@ -358,7 +358,9 @@ const saveToFile = () => {
           </n-notification-provider>
         </n-message-provider>
       </n-loading-bar-provider>
-      <n-button @click="JavaMc = true"> Java版模组翻译教程 </n-button>
+      <n-button strong secondary round type="info" @click="JavaMc = true">
+        Java版模组翻译教程
+      </n-button>
       <n-space :size="12" horizontal>
         <n-upload
           accept=".json"

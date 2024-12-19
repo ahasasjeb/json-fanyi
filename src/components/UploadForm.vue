@@ -337,6 +337,29 @@ const postponeTracking = () => {
     24 * 60 * 60 * 1000,
   )
 }
+
+// 添加响应式宽度计算
+const getDrawerWidth = () => {
+  // 获取视窗宽度
+  const width = window.innerWidth
+  // 移动端使用90%宽度，桌面端使用300px
+  return width <= 768 ? `${width * 0.9}px` : '400px'
+}
+
+const drawerWidth = ref(getDrawerWidth())
+
+// 监听窗口大小变化
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    drawerWidth.value = getDrawerWidth()
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', () => {
+    drawerWidth.value = getDrawerWidth()
+  })
+})
 </script>
 
 <template>
@@ -381,10 +404,12 @@ const postponeTracking = () => {
         </n-button>
       </n-space>
 
-      <n-drawer v-model:show="JavaMc" :width="502">
+      <n-drawer v-model:show="JavaMc" :width="drawerWidth">
         <n-drawer-content title="Java版模组翻译教程" closable>
-          下载一个压缩软件，例如 7-zip，右键jar打开或者解压，找到 assets
-          文件夹，里面就是模组的资源文件。<br />assets里，会有个名字非Minecraft的文件夹，打开它，里面的json就是语言文件。<br />将其上传到这个网站，翻译完后保存，重命名为zh_cn.json，拖动放进去。<br />如果你解压了，就重新压缩为普通zip格式，确保压缩后的一级目录不是单个文件夹，大概率就是压缩成功了，把后缀改成jar。
+          <div class="drawer-content">
+            下载一个压缩软件，例如 7-zip，右键jar打开或者解压，找到 assets
+            文件夹，里面就是模组的资源文件。<br />assets里，会有个名字非Minecraft的文件夹，打开它，里面的json就是语言文件。<br />将其上传到这个网站，翻译完后保存，重命名为zh_cn.json，拖动放进去。<br />如果你解压了，就重新压缩为普通zip格式，确保压缩后的一级目录不是单个文件夹，大概率就是压缩成功了，把后缀改成jar。
+          </div>
         </n-drawer-content>
       </n-drawer>
       <template v-if="loading">
@@ -471,5 +496,18 @@ const postponeTracking = () => {
   word-wrap: break-word;
   max-height: 400px;
   overflow-y: auto;
+}
+
+.drawer-content {
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 16px;
+}
+
+@media screen and (max-width: 768px) {
+  .drawer-content {
+    font-size: 16px;
+    padding: 12px;
+  }
 }
 </style>

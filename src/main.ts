@@ -4,10 +4,28 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import { setup } from '@css-render/vue3-ssr'
-import { createDiscreteApi, NMessageProvider, NButton, NSpace, NInput, NSelect } from 'naive-ui'
+import {
+  createDiscreteApi,
+  NMessageProvider,
+  NButton,
+  NSpace,
+  NInput,
+  NSelect,
+  zhCN,
+} from 'naive-ui'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useVisitorStore } from './stores/visitor'
-
+import { createI18n } from 'vue-i18n'
+import zhCNi from './zhCN'
+import en from './en'
+const i18n = createI18n({
+  locale: 'zh-CN',
+  fallbackLocale: 'en',
+  messages: {
+    'zh-CN': zhCNi,
+    en: en,
+  },
+})
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
@@ -32,5 +50,5 @@ app.component('NButton', NButton)
 app.component('NSpace', NSpace)
 app.component('NInput', NInput)
 app.component('NSelect', NSelect)
-
+app.use(i18n)
 app.mount('#app')

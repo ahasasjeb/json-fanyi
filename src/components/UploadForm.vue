@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onUnmounted, onMounted } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
-import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal } from 'naive-ui'
+import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal, NSelect } from 'naive-ui'
 import TZ from './TZ.vue'
 import { useVisitorStore } from '../stores/visitor'
-
+import { useI18n } from 'vue-i18n'
+const { t, locale } = useI18n()
 const message = useMessage()
 const visitorStore = useVisitorStore()
 const translatedContent = ref<string>('')
@@ -20,6 +21,18 @@ const showTrackingDialog = ref(false)
 const hasUserConsent = ref(false)
 const JavaMc = ref(false)
 const showPrivacyDetails = ref(false)
+
+// 添加语言选择选项
+const languageOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: 'English', value: 'en' },
+]
+
+// 添加语言切换处理函数
+const handleLanguageChange = (value: string) => {
+  locale.value = value
+  localStorage.setItem('userLanguage', value)
+}
 
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
@@ -142,6 +155,10 @@ onMounted(async () => {
     })
   } else {
     checkTrackingConsent()
+  }
+  const savedLanguage = localStorage.getItem('userLanguage')
+  if (savedLanguage) {
+    locale.value = savedLanguage
   }
 })
 
@@ -364,14 +381,21 @@ onUnmounted(() => {
 
 <template>
   <div class="container">
-    <n-card title="JSON 翻译工具">
+    <n-card :title="t('uploadForm.title')">
+      <!-- 添加语言选择器 -->
+      <n-select
+        v-model:value="locale"
+        :options="languageOptions"
+        @update:value="handleLanguageChange"
+        style="width: 120px; margin-bottom: 16px"
+      />
       <p>
-        上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。
-        如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。<br />
-        使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
-        <br />Minecraft模组苦苦汉化？上传到这里自动汉化翻译Java版Minecraft模组。对于基岩版，可以通过邮箱
+        {{ t('uploadForm.description') }}
+        {{ t('uploadForm.loadingText') }}<br />
+        {{ t('uploadForm.modelInfo') }}
+        <br />{{ t('uploadForm.mcInfo') }}
         <code>h@lvjia.cc</code>
-        来告诉我，需要的人多就开发一个。
+        {{ t('uploadForm.emailContact') }}
       </p>
       <n-loading-bar-provider>
         <n-message-provider>
@@ -385,7 +409,7 @@ onUnmounted(() => {
         </n-message-provider>
       </n-loading-bar-provider>
       <n-button strong secondary round type="info" @click="JavaMc = true">
-        Java版模组翻译教程
+        {{ t('uploadForm.tutorialButton') }}
       </n-button>
       <n-space :size="12" horizontal>
         <n-upload
@@ -395,20 +419,22 @@ onUnmounted(() => {
           :show-file-list="false"
         >
           <n-button :loading="loading">
-            {{ loading ? '翻译中...' : '上传 JSON 文件' }}
+            {{ loading ? t('uploadForm.translatingButton') : t('uploadForm.uploadButton') }}
           </n-button>
         </n-upload>
 
         <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
-          保存翻译结果
+          {{ t('uploadForm.saveButton') }}
         </n-button>
       </n-space>
 
       <n-drawer v-model:show="JavaMc" :width="drawerWidth">
-        <n-drawer-content title="Java版模组翻译教程" closable>
+        <n-drawer-content :title="t('uploadForm.tutorialTitle')" closable>
           <div class="drawer-content">
-            下载一个压缩软件，例如 7-zip，右键jar打开或者解压，找到 assets
-            文件夹，里面就是模组的资源文件。<br />assets里，会有个名字非Minecraft的文件夹，打开它，里面的json就是语言文件。<br />将其上传到这个网站，翻译完后保存，重命名为zh_cn.json，拖动放进去。<br />如果你解压了，就重新压缩为普通zip格式，确保压缩后的一级目录不是单个文件夹，大概率就是压缩成功了，把后缀改成jar。
+            {{ t('uploadForm.tutorialContent1') }}<br />
+            {{ t('uploadForm.tutorialContent2') }}<br />
+            {{ t('uploadForm.tutorialContent3') }}<br />
+            {{ t('uploadForm.tutorialContent4') }}
           </div>
         </n-drawer-content>
       </n-drawer>
@@ -445,18 +471,24 @@ onUnmounted(() => {
       >
         <n-space align="center" justify="space-between">
           <div>
-            <p style="margin: 0">帮助我们改进服务</p>
+            <p style="margin: 0">{{ t('uploadForm.privacyTitle') }}</p>
             <p style="font-size: 0.9em; color: #666; margin: 4px 0">
-              我们仅收集匿名访问统计，不含个人信息
-              <n-button text type="primary" @click="showPrivacyDetails = true"> 了解更多 </n-button>
+              {{ t('uploadForm.privacyDesc') }}
+              <n-button text type="primary" @click="showPrivacyDetails = true">
+                {{ t('uploadForm.learnMore') }}
+              </n-button>
             </p>
           </div>
           <n-space>
-            <n-button size="small" @click="handleTrackingConsent(false)"> 不用了 </n-button>
-            <n-button size="small" type="primary" @click="handleTrackingConsent(true)">
-              同意
+            <n-button size="small" @click="handleTrackingConsent(false)">
+              {{ t('uploadForm.disagree') }}
             </n-button>
-            <n-button size="small" quaternary @click="postponeTracking"> 稍后再说 </n-button>
+            <n-button size="small" type="primary" @click="handleTrackingConsent(true)">
+              {{ t('uploadForm.agree') }}
+            </n-button>
+            <n-button size="small" quaternary @click="postponeTracking">
+              {{ t('uploadForm.later') }}
+            </n-button>
           </n-space>
         </n-space>
       </n-card>
@@ -465,12 +497,12 @@ onUnmounted(() => {
       <n-modal
         v-model:show="showPrivacyDetails"
         style="width: 600px"
-        title="隐私说明"
+        :title="t('uploadForm.privacyModalTitle')"
         preset="card"
       >
         <div style="font-size: 14px; line-height: 1.6">
-          <h3>收集数据做什么？</h3>
-          <p>很简单，统计真实用户人数，且不与任何第三方共享。</p>
+          <h3>{{ t('uploadForm.privacyModalSubtitle') }}</h3>
+          <p>{{ t('uploadForm.privacyModalContent') }}</p>
         </div>
       </n-modal>
     </n-card>

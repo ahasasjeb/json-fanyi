@@ -453,18 +453,8 @@ const postponeTracking = () => {
         preset="card"
       >
         <div style="font-size: 14px; line-height: 1.6">
-          <h4>我们收集什么?</h4>
-          <p>仅收集基本访问统计数据，包括:</p>
-          <ul>
-            <li>访问次数</li>
-            <li>匿名的访客识别码</li>
-          </ul>
-          <h4>我们如何使用这些数据?</h4>
-          <p>这些数据仅用于:</p>
-          <ul>
-            <li>了解实际使用人数</li>
-            <li>改进服务质量</li>
-          </ul>
+          <h3>收集数据做什么？</h3>
+          <p>很简单，统计真实用户人数，且不与任何第三方共享。</p>
         </div>
       </n-modal>
     </n-card>

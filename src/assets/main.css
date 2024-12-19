@@ -20,3 +20,10 @@ a,
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }
+code {
+  background-color: #282c34; /* 深蓝背景 */
+  color: #61dafb; /* 蓝色文字 */
+  font-family: 'Fira Code', monospace; /* 使用现代等宽字体 */
+  padding: 5px 10px;
+  border-radius: 4px;
+}

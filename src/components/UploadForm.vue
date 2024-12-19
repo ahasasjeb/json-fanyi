@@ -347,16 +347,7 @@ const postponeTracking = () => {
         如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。<br />
         使用gpt-4o-mini与deepseek-chat进行翻译，随机选择。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。
         <br />Minecraft模组苦苦汉化？上传到这里自动汉化翻译Java版Minecraft模组。对于基岩版，可以通过邮箱
-        <code
-          style="
-            background-color: #2d2d2d; /* 深色背景 */
-            color: #f8f8f2; /* 文字颜色 */
-            font-family: 'Courier New', monospace; /* 使用等宽字体 */
-            padding: 5px 10px;
-            border-radius: 4px;
-          "
-          >h@lvjia.cc</code
-        >
+        <code>h@lvjia.cc</code>
         来告诉我，需要的人多就开发一个。
       </p>
       <n-loading-bar-provider>

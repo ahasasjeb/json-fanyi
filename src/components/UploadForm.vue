@@ -19,6 +19,7 @@ const totalChunks = ref(0)
 const showTrackingDialog = ref(false)
 const hasUserConsent = ref(false)
 const JavaMc = ref(false)
+const showPrivacyDetails = ref(false)
 
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
@@ -325,6 +326,17 @@ const saveToFile = () => {
     message.error('保存文件失败：' + (error as Error).message)
   }
 }
+
+const postponeTracking = () => {
+  showTrackingDialog.value = false
+  // 24小时后再次显示
+  setTimeout(
+    () => {
+      showTrackingDialog.value = true
+    },
+    24 * 60 * 60 * 1000,
+  )
+}
 </script>
 
 <template>
@@ -402,24 +414,58 @@ const saveToFile = () => {
       <div v-if="translatedContent" class="result">
         <pre>{{ translatedContent }}</pre>
       </div>
-      <n-modal
-        v-model:show="showTrackingDialog"
-        preset="dialog"
-        title="访问统计"
-        positive-text="同意"
-        negative-text="拒绝"
-        @positive-click="() => handleTrackingConsent(true)"
-        @negative-click="() => handleTrackingConsent(false)"
-        :closable="false"
-        :mask-closable="false"
+      <n-card
+        v-if="showTrackingDialog"
+        :bordered="false"
+        style="
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        "
       >
-        <p>是否允许统计真实用户人数？</p>
-        <p style="font-size: 0.9em; color: #666">我们承诺：</p>
-        <ul style="font-size: 0.9em; color: #666">
-          <li>仅收集匿名访问数据</li>
-          <li>不会收集任何个人身份信息</li>
-          <li>数据仅用于统计访问人数</li>
-        </ul>
+        <n-space align="center" justify="space-between">
+          <div>
+            <p style="margin: 0">帮助我们改进服务</p>
+            <p style="font-size: 0.9em; color: #666; margin: 4px 0">
+              我们仅收集匿名访问统计，不含个人信息
+              <n-button text type="primary" @click="showPrivacyDetails = true"> 了解更多 </n-button>
+            </p>
+          </div>
+          <n-space>
+            <n-button size="small" @click="handleTrackingConsent(false)"> 不用了 </n-button>
+            <n-button size="small" type="primary" @click="handleTrackingConsent(true)">
+              同意
+            </n-button>
+            <n-button size="small" quaternary @click="postponeTracking"> 稍后再说 </n-button>
+          </n-space>
+        </n-space>
+      </n-card>
+
+      <!-- 隐私详情对话框 -->
+      <n-modal
+        v-model:show="showPrivacyDetails"
+        style="width: 600px"
+        title="隐私说明"
+        preset="card"
+      >
+        <div style="font-size: 14px; line-height: 1.6">
+          <h4>我们收集什么?</h4>
+          <p>仅收集基本访问统计数据，包括:</p>
+          <ul>
+            <li>访问次数</li>
+            <li>匿名的访客识别码</li>
+          </ul>
+          <h4>我们如何使用这些数据?</h4>
+          <p>这些数据仅用于:</p>
+          <ul>
+            <li>了解实际使用人数</li>
+            <li>改进服务质量</li>
+          </ul>
+        </div>
       </n-modal>
     </n-card>
   </div>

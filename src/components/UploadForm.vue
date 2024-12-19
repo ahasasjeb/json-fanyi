@@ -1,9 +1,21 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted } from 'vue'
+import { ref, onUnmounted, onMounted, defineAsyncComponent } from 'vue'
 import type { UploadCustomRequestOptions } from 'naive-ui'
 import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal } from 'naive-ui'
-import TZ from './TZ.vue'
 import { useVisitorStore } from '../stores/visitor'
+
+// 异步导入 TZ 组件
+const TZ = defineAsyncComponent({
+  loader: () => import('./TZ.vue'),
+  loadingComponent: {
+    template: '<div>加载中...</div>',
+  },
+  errorComponent: {
+    template: '<div>加载失败</div>',
+  },
+  delay: 200,
+  timeout: 3000,
+})
 
 const message = useMessage()
 const visitorStore = useVisitorStore()
@@ -378,7 +390,14 @@ onUnmounted(() => {
           <n-notification-provider>
             <n-modal-provider>
               <n-dialog-provider>
-                <TZ />
+                <Suspense>
+                  <template #default>
+                    <TZ />
+                  </template>
+                  <template #fallback>
+                    <div>正在加载组件...</div>
+                  </template>
+                </Suspense>
               </n-dialog-provider>
             </n-modal-provider>
           </n-notification-provider>

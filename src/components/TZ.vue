@@ -18,7 +18,7 @@ export default defineComponent({
           notification[type as NotificationType]({
             title: '2024-12-20',
             content: `
-完善后端，优化模型输出，确保输出非json格式
+完善后端，优化模型输出，确保输出非json格式，防止破坏语言文件。增加i18n，接入openai官方渠道gpt-4o-mini
 2024-12-18：
 完善DNT相关
 2024-12-16：

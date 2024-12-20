@@ -33,5 +33,16 @@
     "privacyModalTitle": "隐私说明",
     "privacyModalSubtitle": "收集数据做什么？",
     "privacyModalContent": "很简单，统计真实用户人数，且不与任何第三方共享。"
-  }
+  },
+  "jsonError1": "JSON 必须是一个对象，不能是数组或其他类型",
+  "jsonKey": "键",
+  "jsonError2": "的值必须是字符串，不允许嵌套对象或数组",
+  "jsonError3": "无效的 JSON 格式",
+  "jsonError4": "文件读取失败",
+  "id1": "访问者ID:",
+  "UserT": "用户曾经同意过，但现在开启了DNT",
+  "SendError": "发送指纹失败",
+  "zheng-zai-fan-yi": "正在翻译:",
+  "chu-li-fan-yi-shu-ju-shi-chu-cuo": "处理翻译数据时出错",
+  "Error2": "翻译失败"
 }

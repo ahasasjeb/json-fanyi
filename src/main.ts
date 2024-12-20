@@ -8,13 +8,13 @@ import { createDiscreteApi, NMessageProvider, NButton, NSpace, NInput, NSelect }
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useVisitorStore } from './stores/visitor'
 import { createI18n } from 'vue-i18n'
-import zh_CN from './locales/zhCN.json'
+import zh_CN from './locales/zh-CN.json'
 import en from './locales/en.json'
 const i18n = createI18n({
-  locale: 'zh-CN',
+  locale: 'zh_CN',
   fallbackLocale: 'en',
   messages: {
-    zh_CN, // 修改这里，key 应该与 locale 值匹配
+    zh_CN,
     en: en,
   },
 })

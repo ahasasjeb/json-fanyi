@@ -25,15 +25,24 @@
     "connectionError": "Connection interrupted",
     "translationError": "Incomplete translation received",
     "translationComplete": "Translation completed!",
-
     "tutorialTitle": "Java Edition Mod Translation Tutorial",
     "tutorialContent1": "Download a compression software such as 7-zip, right-click the jar file to open or extract it. Locate the assets folder where the mod resources are stored.",
     "tutorialContent2": "Inside the assets folder, find another folder named something other than Minecraft; this contains the language files in json format.",
     "tutorialContent3": "Upload these json files to this website, save after translation, rename them to zh_cn.json, and place them back inside.",
     "tutorialContent4": "If you extracted the files, recompress them into a regular zip format ensuring that the root directory does not contain just a single folder. This should indicate successful compression; change the extension to .jar.",
-
     "privacyModalTitle": "Privacy Policy",
     "privacyModalSubtitle": "What data do we collect?",
     "privacyModalContent": "Simply put, we count real users and do not share this data with any third parties."
-  }
+  },
+  "jsonError1": "JSON must be an object, not an array or other type.",
+  "jsonKey": "Key",
+  "jsonError2": "values must be strings, no nested objects or arrays are allowed",
+  "jsonError3": "Invalid json format",
+  "jsonError4": "File Read Failure",
+  "Error2": "Translation failure",
+  "SendError": "Failed to send fingerprint",
+  "UserT": "The user had agreed to it, but now has DNT turned on",
+  "chu-li-fan-yi-shu-ju-shi-chu-cuo": "Error in processing translated data",
+  "id1": "Visitor ID:",
+  "zheng-zai-fan-yi": "Translation in progress:"
 }

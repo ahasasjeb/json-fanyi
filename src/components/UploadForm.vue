@@ -65,28 +65,28 @@ const validateJson = (file: File): Promise<boolean> => {
 
         // 验证是否为对象
         if (typeof content !== 'object' || Array.isArray(content)) {
-          reject(new Error('JSON 必须是一个对象，不能是数组或其他类型'))
+          reject(new Error(t('jsonError1')))
           return
         }
 
         // 验证是否只有单层键值对
         for (const [key, value] of Object.entries(content)) {
           if (typeof value !== 'string') {
-            reject(new Error(`键 "${key}" 的值必须是字符串，不允许嵌套对象或数组`))
+            reject(new Error(`${t('jsonKey')}${key} $t('jsonError2')`))
             return
           }
         }
 
         resolve(true)
       } catch (error) {
-        reject(new Error('无效的 JSON 格式'))
+        reject(new Error(t('jsonError3')))
       } finally {
         cleanupCurrentReader()
       }
     }
 
     reader.onerror = () => {
-      reject(new Error('文件读取失败'))
+      reject(new Error(t('jsonError4')))
       cleanupCurrentReader()
     }
 
@@ -97,7 +97,7 @@ const validateJson = (file: File): Promise<boolean> => {
 // 检查 Do Not Track 设置和用户同意状态
 const checkTrackingConsent = () => {
   if (navigator.doNotTrack === '1') {
-    message.success('已启用请勿追踪，我们将不会收集任何统计信息')
+    message.success(t('uploadForm.dntEnabled'))
     return true
   }
   // 检查本地存储中的用户同意状态
@@ -121,8 +121,8 @@ const handleTrackingConsent = (agreed: boolean) => {
   if (agreed) {
     // 发送指纹数据到后端
     sendFingerprint(visitorStore.visitorId)
-    message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
-    console.log('访问者ID:', visitorStore.visitorId)
+    message.success(t('uploadForm.thankYou') + visitorStore.visitorId)
+    console.log(t('id1'), visitorStore.visitorId)
   }
 }
 
@@ -137,14 +137,12 @@ onMounted(async () => {
         if (visitorStore.visitorId) {
           // 发送指纹数据到后端
           if (navigator.doNotTrack === '1') {
-            message.success(
-              '已启用请勿追踪，虽然曾经同意过，但现在开启了DNT，我们将不会收集任何统计信息',
-            )
-            console.log('用户曾经同意过，但现在开启了DNT')
+            message.success(t('uploadForm.dntEnabledPrevious'))
+            console.log(t('UserT'))
           } else {
             sendFingerprint(visitorStore.visitorId)
-            message.success('感谢您的支持！您的ID是：' + visitorStore.visitorId)
-            console.log('访问者ID:', visitorStore.visitorId)
+            message.success(t('uploadForm.thankYou') + visitorStore.visitorId)
+            console.log(t('id1'), visitorStore.visitorId)
             resolve()
           }
         } else {
@@ -176,7 +174,7 @@ const sendFingerprint = async (fingerprint: string) => {
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.message || '发送指纹失败')
+      throw new Error(errorData.message || t('SendError'))
     }
 
     const result = await response.json()
@@ -237,7 +235,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
         case 'progress':
           progress.value = data.percentage
           if (data.lastTranslated) {
-            currentKey.value = `正在翻译: ${data.lastTranslated.key}`
+            currentKey.value = `$t('zheng-zai-fan-yi') ${data.lastTranslated.key}`
           }
           break
 
@@ -260,7 +258,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
               contentChunks.value = []
               totalChunks.value = 0
             } catch (error) {
-              message.error('处理翻译数据时出错')
+              message.error(t('chu-li-fan-yi-shu-ju-shi-chu-cuo'))
               closeCurrentEventSource()
               loading.value = false
             }
@@ -271,7 +269,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           if (data.key) {
             message.warning(`翻译 "${data.key}" 时出错: ${data.error}`)
           } else {
-            message.error(data.error || '翻译失败')
+            message.error(data.error || t('Error2'))
             closeCurrentEventSource()
             loading.value = false
           }

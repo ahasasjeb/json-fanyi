@@ -24,7 +24,7 @@ const showPrivacyDetails = ref(false)
 
 // 添加语言选择选项
 const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
+  { label: '简体中文', value: 'zh_CN' },
   { label: 'English', value: 'en' },
 ]
 

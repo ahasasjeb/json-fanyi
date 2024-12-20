@@ -16,8 +16,11 @@ export default defineComponent({
       notify(type: string) {
         if (['info', 'success', 'warning', 'error'].includes(type)) {
           notification[type as NotificationType]({
-            title: '2024-12-18',
-            content: `完善DNT相关
+            title: '2024-12-20',
+            content: `
+完善后端，优化模型输出，确保输出非json格式
+2024-12-18：
+完善DNT相关
 2024-12-16：
 优化js大小，收集数据进行统计
 2024-12-15:

@@ -4,25 +4,17 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import { setup } from '@css-render/vue3-ssr'
-import {
-  createDiscreteApi,
-  NMessageProvider,
-  NButton,
-  NSpace,
-  NInput,
-  NSelect,
-  zhCN,
-} from 'naive-ui'
+import { createDiscreteApi, NMessageProvider, NButton, NSpace, NInput, NSelect } from 'naive-ui'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useVisitorStore } from './stores/visitor'
 import { createI18n } from 'vue-i18n'
-import zhCNi from './zhCN'
-import en from './en'
+import zh_CN from './locales/zhCN.json'
+import en from './locales/en.json'
 const i18n = createI18n({
   locale: 'zh-CN',
   fallbackLocale: 'en',
   messages: {
-    'zh-CN': zhCNi,
+    zh_CN, // 修改这里，key 应该与 locale 值匹配
     en: en,
   },
 })

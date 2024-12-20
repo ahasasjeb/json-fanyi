@@ -42,7 +42,8 @@
   "Error2": "Translation failure",
   "SendError": "Failed to send fingerprint",
   "UserT": "The user had agreed to it, but now has DNT turned on",
-  "chu-li-fan-yi-shu-ju-shi-chu-cuo": "Error in processing translated data",
+  "Error3": "Error in processing translated data",
   "id1": "Visitor ID:",
-  "zheng-zai-fan-yi": "Translation in progress:"
+  "zheng-zai-fan-yi": "Translation in progress:",
+  "T": "Translation in progress:"
 }

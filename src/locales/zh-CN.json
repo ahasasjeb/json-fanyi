@@ -42,7 +42,7 @@
   "id1": "访问者ID:",
   "UserT": "用户曾经同意过，但现在开启了DNT",
   "SendError": "发送指纹失败",
-  "zheng-zai-fan-yi": "正在翻译:",
-  "chu-li-fan-yi-shu-ju-shi-chu-cuo": "处理翻译数据时出错",
+  "T": "正在翻译:",
+  "Error3": "处理翻译数据时出错",
   "Error2": "翻译失败"
 }

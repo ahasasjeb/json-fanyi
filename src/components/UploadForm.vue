@@ -235,7 +235,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
         case 'progress':
           progress.value = data.percentage
           if (data.lastTranslated) {
-            currentKey.value = `$t('zheng-zai-fan-yi') ${data.lastTranslated.key}`
+            currentKey.value = `${t('T')} ${data.lastTranslated.key}`
           }
           break
 
@@ -258,7 +258,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
               contentChunks.value = []
               totalChunks.value = 0
             } catch (error) {
-              message.error(t('chu-li-fan-yi-shu-ju-shi-chu-cuo'))
+              message.error(t('Error3'))
               closeCurrentEventSource()
               loading.value = false
             }

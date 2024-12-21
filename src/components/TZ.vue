@@ -1,6 +1,6 @@
 <template>
   <n-space>
-    <n-button @click="notify('info')" type="info"> 更新日志 </n-button>
+    <n-button @click="notify('info')" type="info"> {{ $t('update') }} </n-button>
   </n-space>
 </template>
 

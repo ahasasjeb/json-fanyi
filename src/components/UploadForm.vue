@@ -282,7 +282,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
             loading.value = false
             return
           }
-          message.success('翻译完成！')
+          message.success(t('uploadForm.translationComplete'))
           closeCurrentEventSource()
           loading.value = false
           break
@@ -290,7 +290,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     }
 
     eventSource.onerror = () => {
-      message.error('连接中断')
+      message.error(t('uploadForm.connectionError'))
       closeCurrentEventSource()
       loading.value = false
     }
@@ -308,7 +308,7 @@ onUnmounted(() => {
 
 const saveToFile = () => {
   if (!translatedContent.value) {
-    message.warning('没有可保存的翻译内容')
+    message.warning(t('uploadForm.noTranslation'))
     return
   }
 
@@ -336,9 +336,9 @@ const saveToFile = () => {
       window.URL.revokeObjectURL(url)
     }, 100)
 
-    message.success('文件已保存！')
+    message.success(t('uploadForm.saveSuccess'))
   } catch (error) {
-    message.error('保存文件失败：' + (error as Error).message)
+    message.error(t('uploadForm.saveError') + (error as Error).message)
   }
 }
 
@@ -391,8 +391,8 @@ onUnmounted(() => {
         {{ t('uploadForm.description') }}
         {{ t('uploadForm.loadingText') }}<br />
         {{ t('uploadForm.modelInfo') }}
-        <br />{{ t('uploadForm.mcInfo') }}
-        <code>h@lvjia.cc</code>
+        <br />{{ t('uploadForm.mcInfo') }}<br />
+        <code>h@lvjia.cc</code><br />
         {{ t('uploadForm.emailContact') }}
       </p>
       <n-loading-bar-provider>

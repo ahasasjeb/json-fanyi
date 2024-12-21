@@ -27,7 +27,11 @@ const languageOptions = [
   { label: '简体中文', value: 'zh_CN' },
   { label: 'English', value: 'en' },
 ]
-
+const translationDirectionOptions = [
+  { label: 'English → 中文', value: 'en2zh' },
+  { label: '中文 → English', value: 'zh2en' },
+]
+const translationDirection = ref('en2zh')
 // 添加语言切换处理函数
 const handleLanguageChange = (value: string) => {
   locale.value = value
@@ -208,8 +212,8 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
     const formData = new FormData()
     formData.append('file', file.file as File)
+    formData.append('direction', translationDirection.value) // 添加翻译方向
 
-    // First send the file using POST
     const response = await fetch('/api/translate', {
       method: 'POST',
       body: formData,
@@ -386,6 +390,12 @@ onUnmounted(() => {
         :options="languageOptions"
         @update:value="handleLanguageChange"
         style="width: 120px; margin-bottom: 16px"
+      />
+      <!-- 添加翻译方向选择器 -->
+      <n-select
+        v-model:value="translationDirection"
+        :options="translationDirectionOptions"
+        style="width: 140px; margin-bottom: 16px; margin-left: 16px"
       />
       <p>
         {{ t('uploadForm.description') }}

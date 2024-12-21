@@ -1,7 +1,7 @@
 {
   "uploadForm": {
     "title": "JSON Translation Tool",
-    "description": "Upload a JSON file to automatically translate it into Chinese. Please ensure that the JSON file is not nested.",
+    "description": "Upload a JSON file that can be automatically translated into Chinese. Please make sure to select a non nested JSON file. Before uploading, select the translation method, which defaults to translating English into Chinese.",
     "loadingText": "If it gets stuck on a value for a long time without making progress, please wait a bit longer instead of refreshing the page, as the upstream server might be overloaded and could recover in about one minute.",
     "modelInfo": "Translation is performed using either gpt-4o-mini or deepseek-chat, chosen randomly. Haven't heard of DeepSeek? It's similar to gpt-4o-mini but cheaper and faster.",
     "mcInfo": "Struggling with translating Java Edition Minecraft mods? Upload them here for automatic translation.",

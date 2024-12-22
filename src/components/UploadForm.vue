@@ -398,6 +398,7 @@ onUnmounted(() => {
         style="width: 140px; margin-bottom: 16px; margin-left: 16px"
       />
       <p>
+        之前出现了莫名其妙的错误，我重启了一下服务端就好了，非常莫名其妙。
         {{ t('uploadForm.description') }}
         {{ t('uploadForm.loadingText') }}<br />
         {{ t('uploadForm.modelInfo') }}

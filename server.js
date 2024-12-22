@@ -225,7 +225,7 @@ app.get('/api/translate/progress', (req, res) => {
   const translation = activeTranslations.get(translationId)
   translation.clients.add(res)
 
-  // Send initial progress
+  // 发送初始进度
   res.write(
     `data: ${JSON.stringify({
       type: 'progress',
@@ -234,13 +234,37 @@ app.get('/api/translate/progress', (req, res) => {
     })}\n\n`,
   )
 
-  // Clean up when client disconnects
+  // 设置120秒超时
+  const timeout = setTimeout(() => {
+    // 发送超时通知
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'timeout',
+        message: 'SSE connection timed out after 120 seconds',
+      })}\n\n`,
+    )
+
+    // 从clients集合中移除
+    translation.clients.delete(res)
+
+    // 如果没有客户端且翻译完成,清理translation
+    if (
+      translation.clients.size === 0 &&
+      (translation.status === 'complete' || translation.status === 'error')
+    ) {
+      activeTranslations.delete(translationId)
+    }
+
+    // 结束响应
+    res.end()
+  }, 120000) // 120秒
+
+  // 客户端断开时清理
   req.on('close', () => {
+    clearTimeout(timeout)
     const translation = activeTranslations.get(translationId)
     if (translation) {
       translation.clients.delete(res)
-
-      // If no clients are connected and translation is complete, clean up
       if (
         translation.clients.size === 0 &&
         (translation.status === 'complete' || translation.status === 'error')

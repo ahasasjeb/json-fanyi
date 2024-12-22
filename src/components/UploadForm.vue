@@ -221,7 +221,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.error || '上传失败')
+      throw new Error(errorData.error || t('Upload.error'))
     }
 
     // Then establish SSE connection for progress updates
@@ -271,7 +271,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
         case 'error':
           if (data.key) {
-            message.warning(`翻译 "${data.key}" 时出错: ${data.error}`)
+            message.warning(`$t('translate') "${data.key}"$t('error4') ${data.error}`)
           } else {
             message.error(data.error || t('Error2'))
             closeCurrentEventSource()
@@ -281,7 +281,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
         case 'complete':
           if (!translatedContent.value) {
-            message.error('未收到完整的翻译内容')
+            message.error(t('uploadForm.translationError'))
             closeCurrentEventSource()
             loading.value = false
             return

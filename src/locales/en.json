@@ -45,5 +45,10 @@
   "Error3": "Error in processing translated data",
   "id1": "Visitor ID:",
   "T": "Translation in progress:",
-  "update": "Update log"
+  "update": "Update log",
+  "translate": "translate",
+  "error4": "Error:",
+  "Upload": {
+    "error": "Upload failed"
+  }
 }

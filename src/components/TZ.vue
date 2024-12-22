@@ -8,7 +8,7 @@
 import type { NotificationType } from 'naive-ui'
 import { useNotification } from 'naive-ui'
 import { defineComponent } from 'vue'
-import { changeLog } from './changlog'
+import { changeLog } from './changelog'
 
 export default defineComponent({
   setup() {

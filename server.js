@@ -56,7 +56,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // 随机选择模型
 function getRandomModel() {
-  const models = ['gpt-4o-mini-1', 'deepseek-chat']
+  const models = ['o-gpt-1o-mini', 'deepseek-chat']
   const randomIndex = Math.floor(Math.random() * models.length)
   return models[randomIndex]
 }

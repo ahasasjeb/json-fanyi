@@ -33,7 +33,13 @@
     "tutorialContent4": "如果你解压了，就重新压缩为普通zip格式，确保压缩后的一级目录不是单个文件夹，大概率就是压缩成功了，把后缀改成jar。",
     "privacyModalTitle": "隐私说明",
     "privacyModalSubtitle": "收集数据做什么？",
-    "privacyModalContent": "很简单，统计真实用户人数，且不与任何第三方共享。"
+    "privacyModalContent": "很简单，统计真实用户人数，且不与任何第三方共享。",
+    "activeTaskCount": "当前正在进行的翻译任务",
+    "serverError": "之前出现了莫名其妙的错误，我重启了一下服务端就好了，非常莫名其妙。",
+    "translationDirection": {
+      "en2zh": "English → 中文",
+      "zh2en": "中文 → English"
+    }
   },
   "jsonError1": "JSON 必须是一个对象，不能是数组或其他类型",
   "jsonKey": "键",

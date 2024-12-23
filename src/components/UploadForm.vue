@@ -22,14 +22,17 @@ const hasUserConsent = ref(false)
 const JavaMc = ref(false)
 const showPrivacyDetails = ref(false)
 
+const activeTaskCount = ref(0)
+const totalTaskCount = ref(0)
+
 // 添加语言选择选项
 const languageOptions = [
   { label: '简体中文', value: 'zh_CN' },
   { label: 'English', value: 'en' },
 ]
 const translationDirectionOptions = [
-  { label: 'English → 中文', value: 'en2zh' },
-  { label: '中文 → English', value: 'zh2en' },
+  { label: t('uploadForm.translationDirection.en2zh'), value: 'en2zh' },
+  { label: t('uploadForm.translationDirection.zh2en'), value: 'zh2en' },
 ]
 const translationDirection = ref('en2zh')
 // 添加语言切换处理函数
@@ -169,6 +172,8 @@ onMounted(async () => {
   if (savedLanguage) {
     locale.value = savedLanguage
   }
+  fetchActiveTaskCount()
+  taskCountInterval = setInterval(fetchActiveTaskCount, 30000)
 })
 
 // 收集指纹数据并发送到后端
@@ -327,6 +332,9 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 onUnmounted(() => {
   closeCurrentEventSource()
   cleanupCurrentReader()
+  if (taskCountInterval) {
+    clearInterval(taskCountInterval)
+  }
 })
 
 const saveToFile = () => {
@@ -398,6 +406,21 @@ onUnmounted(() => {
     drawerWidth.value = getDrawerWidth()
   })
 })
+
+// 添加获取活动任务数量的函数
+const fetchActiveTaskCount = async () => {
+  try {
+    const response = await fetch('https://api2.lvjia.cc/api/translate/active-count')
+    const data = await response.json()
+    activeTaskCount.value = data.activeCount
+    totalTaskCount.value = data.totalTasks
+  } catch (error) {
+    console.error('Failed to fetch active task count:', error)
+  }
+}
+
+// 每30秒更新一次活动任务数量
+let taskCountInterval: ReturnType<typeof setInterval>
 </script>
 
 <template>
@@ -410,6 +433,10 @@ onUnmounted(() => {
         @update:value="handleLanguageChange"
         style="width: 120px; margin-bottom: 16px"
       />
+      <!-- 在语言选择器下方添加活动任务计数器 -->
+      <p v-if="activeTaskCount > 0" class="task-count">
+        {{ t('uploadForm.activeTaskCount') }}: {{ activeTaskCount }} / {{ totalTaskCount }}
+      </p>
       <!-- 添加翻译方向选择器 -->
       <n-select
         v-model:value="translationDirection"
@@ -417,7 +444,7 @@ onUnmounted(() => {
         style="width: 140px; margin-bottom: 16px; margin-left: 16px"
       />
       <p>
-        之前出现了莫名其妙的错误，我重启了一下服务端就好了，非常莫名其妙。
+        {{ t('uploadForm.serverError') }}
         {{ t('uploadForm.description') }}
         {{ t('uploadForm.loadingText') }}<br />
         {{ t('uploadForm.modelInfo') }}
@@ -569,5 +596,11 @@ onUnmounted(() => {
     font-size: 16px;
     padding: 12px;
   }
+}
+
+.task-count {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
 }
 </style>

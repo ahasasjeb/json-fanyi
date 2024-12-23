@@ -424,6 +424,18 @@ async function scheduleFileDeletion(filePath) {
   ) // 2 hours
 }
 
+// 在 app.listen 之前添加新的路由
+app.get('/api/translate/active-count', (req, res) => {
+  const activeCount = Array.from(activeTranslations.values()).filter(
+    (translation) => translation.status === 'pending',
+  ).length
+
+  res.json({
+    activeCount,
+    totalTasks: activeTranslations.size,
+  })
+})
+
 const PORT = 3000
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

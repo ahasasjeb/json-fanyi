@@ -33,7 +33,13 @@
     "tutorialContent4": "If you extracted the files, recompress them into a regular zip format ensuring that the root directory does not contain just a single folder. This should indicate successful compression; change the extension to .jar.",
     "privacyModalTitle": "Privacy Policy",
     "privacyModalSubtitle": "What data do we collect?",
-    "privacyModalContent": "Simply put, we count real users and do not share this data with any third parties."
+    "privacyModalContent": "Simply put, we count real users and do not share this data with any third parties.",
+    "activeTaskCount": "Current active translation tasks",
+    "serverError": "There was an unexpected error earlier, but it was resolved after restarting the server.",
+    "translationDirection": {
+      "en2zh": "English → Chinese",
+      "zh2en": "Chinese → English"
+    }
   },
   "jsonError1": "JSON must be an object, not an array or other type.",
   "jsonKey": "Key",

@@ -15,6 +15,14 @@ const __dirname = dirname(__filename)
 const app = express()
 app.use(cors())
 
+// Redirect to trailing slash
+app.use((req, res, next) => {
+  if (req.path !== '/' && !req.path.endsWith('/')) {
+    return res.redirect(301, req.path + '/')
+  }
+  next()
+})
+
 // Serve static files from dist directory
 app.use(express.static(resolve(__dirname, 'dist')))
 

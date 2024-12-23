@@ -175,6 +175,8 @@ onMounted(async () => {
   }
   fetchActiveTaskCount()
   taskCountInterval = setInterval(fetchActiveTaskCount, 3000)
+  // 等待首次 reCAPTCHA 验证
+  await recaptchaVerifier.value?.reset()
 })
 
 // 收集指纹数据并发送到后端
@@ -216,143 +218,168 @@ const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://ap
 
 // 修改 customRequest 函数
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
-  // 如果 DNT 未开启且用户未做出选择，显示对话框
-  if (!navigator.doNotTrack && !localStorage.getItem('userTrackingConsent')) {
-    showTrackingDialog.value = true
-  }
-
-  // 关闭之前的连接和清理
-  closeCurrentEventSource()
-  cleanupCurrentReader()
-
-  loading.value = true
-  progress.value = 0
-  translatedContent.value = ''
-  currentKey.value = ''
-  originalFileName.value = file.file?.name || 'translated.json'
-  contentChunks.value = []
-  totalChunks.value = 0
-
   try {
-    // 先在客户端验证 JSON 格式
-    await validateJson(file.file as File)
-
-    const formData = new FormData()
-    formData.append('file', file.file as File)
-    formData.append('direction', translationDirection.value) // 添加翻译方向
-    formData.append('recaptcha_token', recaptchaToken.value) // 添加 reCAPTCHA token
-
-    const response = await fetch(`${API_BASE_URL}/api/translate`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (response.status === 429) {
-      throw new Error(t('uploadForm.rateLimitError'))
-    }
-
-    if (response.status === 403) {
-      // reCAPTCHA 验证失败时重置
+    // 在发送请求前先检查并刷新 token
+    if (!recaptchaToken.value) {
+      message.warning(t('uploadForm.waitingForRecaptcha') || '请等待人机验证完成')
       await recaptchaVerifier.value?.reset()
-      throw new Error(t('uploadForm.recaptchaFailed'))
+      return
     }
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || t('Upload.error'))
+    // 如果 DNT 未开启且用户未做出选择，显示对话框
+    if (!navigator.doNotTrack && !localStorage.getItem('userTrackingConsent')) {
+      showTrackingDialog.value = true
     }
 
-    // 获取响应数据
-    const responseData = await response.json()
-    const translationId = responseData.id // 从响应中获取 ID
+    // 关闭之前的连接和清理
+    closeCurrentEventSource()
+    cleanupCurrentReader()
 
-    if (!translationId) {
-      throw new Error('Missing translation ID from server')
-    }
+    loading.value = true
+    progress.value = 0
+    translatedContent.value = ''
+    currentKey.value = ''
+    originalFileName.value = file.file?.name || 'translated.json'
+    contentChunks.value = []
+    totalChunks.value = 0
 
-    // 建立 SSE 连接
-    const eventSource = new EventSource(
-      `${API_BASE_URL}/api/translate/progress?id=${translationId}`,
-    )
+    try {
+      // 先在客户端验证 JSON 格式
+      await validateJson(file.file as File)
 
-    // 保存当前的 EventSource
-    currentEventSource.value = eventSource
+      const formData = new FormData()
+      formData.append('file', file.file as File)
+      formData.append('direction', translationDirection.value) // 添加翻译方向
+      formData.append('recaptcha_token', recaptchaToken.value) // 添加 reCAPTCHA token
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data)
+      const response = await fetch(`${API_BASE_URL}/api/translate`, {
+        method: 'POST',
+        body: formData,
+      })
 
-      switch (data.type) {
-        case 'progress':
-          progress.value = data.percentage
-          if (data.lastTranslated) {
-            currentKey.value = `${t('T')} ${data.lastTranslated.key}`
-          }
-          break
+      if (response.status === 429) {
+        throw new Error(t('uploadForm.rateLimitError'))
+      }
 
-        case 'chunk':
-          // Initialize chunks array if this is the first chunk
-          if (data.chunkIndex === 0) {
-            contentChunks.value = new Array(data.totalChunks)
-            totalChunks.value = data.totalChunks
-          }
+      if (response.status === 403) {
+        // reCAPTCHA 验证失败时重置
+        await recaptchaVerifier.value?.reset()
+        throw new Error(t('uploadForm.recaptchaFailed'))
+      }
 
-          // Store the chunk
-          contentChunks.value[data.chunkIndex] = data.data
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || t('Upload.error'))
+      }
 
-          // If we have all chunks, combine them and parse
-          if (contentChunks.value.filter(Boolean).length === totalChunks.value) {
-            try {
-              const fullContent = contentChunks.value.join('')
-              translatedContent.value = JSON.stringify(JSON.parse(fullContent), null, 2)
-              // Clear chunks array
-              contentChunks.value = []
-              totalChunks.value = 0
-            } catch (error) {
-              message.error(t('Error3'))
+      // 获取响应数据
+      const responseData = await response.json()
+      const translationId = responseData.id // 从响应中获取 ID
+
+      if (!translationId) {
+        throw new Error('Missing translation ID from server')
+      }
+
+      // 建立 SSE 连接
+      const eventSource = new EventSource(
+        `${API_BASE_URL}/api/translate/progress?id=${translationId}`,
+      )
+
+      // 保存当前的 EventSource
+      currentEventSource.value = eventSource
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+
+        switch (data.type) {
+          case 'progress':
+            progress.value = data.percentage
+            if (data.lastTranslated) {
+              currentKey.value = `${t('T')} ${data.lastTranslated.key}`
+            }
+            break
+
+          case 'chunk':
+            // Initialize chunks array if this is the first chunk
+            if (data.chunkIndex === 0) {
+              contentChunks.value = new Array(data.totalChunks)
+              totalChunks.value = data.totalChunks
+            }
+
+            // Store the chunk
+            contentChunks.value[data.chunkIndex] = data.data
+
+            // If we have all chunks, combine them and parse
+            if (contentChunks.value.filter(Boolean).length === totalChunks.value) {
+              try {
+                const fullContent = contentChunks.value.join('')
+                translatedContent.value = JSON.stringify(JSON.parse(fullContent), null, 2)
+                // Clear chunks array
+                contentChunks.value = []
+                totalChunks.value = 0
+              } catch (error) {
+                message.error(t('Error3'))
+                closeCurrentEventSource()
+                loading.value = false
+              }
+            }
+            break
+
+          case 'error':
+            if (data.key) {
+              message.warning(`$t('translate') "${data.key}"$t('error4') ${data.error}`)
+            } else {
+              message.error(data.error || t('Error2'))
               closeCurrentEventSource()
               loading.value = false
             }
-          }
-          break
+            break
 
-        case 'error':
-          if (data.key) {
-            message.warning(`$t('translate') "${data.key}"$t('error4') ${data.error}`)
-          } else {
-            message.error(data.error || t('Error2'))
-            closeCurrentEventSource()
-            loading.value = false
-          }
-          break
+          case 'complete':
+            if (!translatedContent.value) {
+              message.error(t('uploadForm.translationError'))
+              closeCurrentEventSource()
+              loading.value = false
+              return
+            }
+            handleTranslationComplete()
+            break
+        }
+      }
 
-        case 'complete':
-          if (!translatedContent.value) {
-            message.error(t('uploadForm.translationError'))
-            closeCurrentEventSource()
-            loading.value = false
-            return
-          }
-          message.success(t('uploadForm.translationComplete'))
-          closeCurrentEventSource()
-          loading.value = false
-          break
+      eventSource.onerror = () => {
+        message.error(t('uploadForm.connectionError'))
+        closeCurrentEventSource()
+        loading.value = false
+      }
+    } catch (error) {
+      message.error((error as Error).message)
+      loading.value = false
+
+      // 在发生错误时也重置 reCAPTCHA
+      if ((error as Error).message.includes('429')) {
+        await recaptchaVerifier.value?.reset()
       }
     }
 
-    eventSource.onerror = () => {
-      message.error(t('uploadForm.connectionError'))
-      closeCurrentEventSource()
-      loading.value = false
-    }
+    // 文件上传成功后，立即刷新 token 为下一次做准备
+    await recaptchaVerifier.value?.reset()
   } catch (error) {
     message.error((error as Error).message)
     loading.value = false
 
     // 在发生错误时也重置 reCAPTCHA
-    if ((error as Error).message.includes('429')) {
-      await recaptchaVerifier.value?.reset()
-    }
+    await recaptchaVerifier.value?.reset()
   }
+}
+
+// 在成功完成任务后也刷新 token
+const handleTranslationComplete = async () => {
+  message.success(t('uploadForm.translationComplete'))
+  closeCurrentEventSource()
+  loading.value = false
+  // 完成后刷新 token
+  await recaptchaVerifier.value?.reset()
 }
 
 // 组件卸载时关闭连接

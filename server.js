@@ -339,10 +339,21 @@ function notifyClients(translationId, data) {
   }
 }
 
+// 在 activeTranslations Map 声明后添加
+const TRANSLATION_TIMEOUT = 10 * 60 * 1000 // 10分钟超时
+
 // 修改 processTranslation 函数
 async function processTranslation(translationId) {
   const translation = activeTranslations.get(translationId)
   if (!translation) return
+
+  // 添加超时检查
+  const timeoutId = setTimeout(() => {
+    if (translation.clients.size === 0) {
+      console.log(`Translation ${translationId} timed out due to no active clients`)
+      cancelTranslation(translationId)
+    }
+  }, TRANSLATION_TIMEOUT)
 
   try {
     const data = JSON.parse(await fs.readFile(translation.inputPath, 'utf8'))
@@ -365,20 +376,33 @@ async function processTranslation(translationId) {
     const total = entries.length
     let completed = 0
 
-    // Create an array of translation promises
-    const translations = entries.map(([key, value], index) => {
+    // 创建翻译取消标志
+    translation.isCancelled = false
+
+    for (const [key, value] of entries) {
+      // 检查是否已取消
+      if (translation.isCancelled) {
+        console.log(`Translation ${translationId} was cancelled`)
+        break
+      }
+
+      // 检查是否还有活跃客户端
+      if (translation.clients.size === 0) {
+        console.log(`Translation ${translationId} stopped due to no active clients`)
+        cancelTranslation(translationId)
+        break
+      }
+
       if (typeof value === 'string') {
-        return limit(async () => {
+        await limit(async () => {
           try {
             const context = getSimilarTranslations(key, data, translatedData)
             const translatedValue = await translateValue(value, key, translation.direction, context)
             translatedData[key] = translatedValue
 
-            // Update progress
             completed++
             translation.progress = Math.round((completed / total) * 100)
 
-            // Notify clients
             notifyClients(translationId, {
               type: 'progress',
               completed,
@@ -389,8 +413,6 @@ async function processTranslation(translationId) {
           } catch (error) {
             console.error(`翻译"${key}"时出错: ${error.message}`)
             translatedData[key] = value
-
-            // Notify clients of error
             notifyClients(translationId, {
               type: 'error',
               key,
@@ -405,53 +427,70 @@ async function processTranslation(translationId) {
         translatedData[key] = value
         completed++
         translation.progress = Math.round((completed / total) * 100)
-        return Promise.resolve()
       }
-    })
-
-    // Wait for all translations to complete
-    await Promise.all(translations)
-
-    // Update status and notify clients
-    translation.status = 'complete'
-
-    // Split large translation content into chunks
-    const contentStr = JSON.stringify(translatedData)
-    const chunkSize = 16384 // 16KB chunks
-    const chunks = Math.ceil(contentStr.length / chunkSize)
-
-    for (let i = 0; i < chunks; i++) {
-      const chunk = contentStr.slice(i * chunkSize, (i + 1) * chunkSize)
-      notifyClients(translationId, {
-        type: 'chunk',
-        chunkIndex: i,
-        totalChunks: chunks,
-        data: chunk,
-        completed,
-        total,
-        percentage: 100,
-      })
-      // Add a small delay between chunks to prevent overwhelming the connection
-      await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
-    // Send final completion message without the full content
-    notifyClients(translationId, {
-      type: 'complete',
-      completed,
-      total,
-      percentage: 100,
-    })
-
-    // Schedule cleanup
-    scheduleFileDeletion(translation.inputPath)
-    scheduleFileDeletion(translation.inputPath.replace('.json', '_translated.json'))
+    // 如果未被取消，完成翻译
+    if (!translation.isCancelled) {
+      translation.status = 'complete'
+      // ...existing completion code...
+    }
   } catch (error) {
     translation.status = 'error'
     translation.error = error.message
     throw error
+  } finally {
+    clearTimeout(timeoutId)
   }
 }
+
+// 添加取消翻译函数
+function cancelTranslation(translationId) {
+  const translation = activeTranslations.get(translationId)
+  if (translation) {
+    translation.isCancelled = true
+    translation.status = 'cancelled'
+
+    // 通知所有客户端翻译已取消
+    notifyClients(translationId, {
+      type: 'cancelled',
+      message: 'Translation cancelled due to inactivity',
+    })
+
+    // 清理资源
+    translation.clients.forEach((client) => client.end())
+    translation.clients.clear()
+
+    // 删除临时文件
+    scheduleFileDeletion(translation.inputPath)
+
+    // 从活动翻译列表中移除
+    activeTranslations.delete(translationId)
+  }
+}
+
+// 修改 progress 路由中的连接关闭处理
+app.get('/api/translate/progress', (req, res) => {
+  // ...existing code...
+
+  req.on('close', () => {
+    clearTimeout(timeout)
+    const translation = activeTranslations.get(translationId)
+    if (translation) {
+      translation.clients.delete(res)
+
+      // 如果没有活跃客户端，启动一个短暂的等待期
+      if (translation.clients.size === 0) {
+        setTimeout(() => {
+          // 再次检查是否仍然没有客户端
+          if (translation.clients.size === 0) {
+            cancelTranslation(translationId)
+          }
+        }, 30000) // 30秒后检查
+      }
+    }
+  })
+})
 
 // Schedule file deletion after 2 hours
 async function scheduleFileDeletion(filePath) {

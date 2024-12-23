@@ -41,7 +41,8 @@
     "translationDirection": {
       "en2zh": "English → 中文",
       "zh2en": "中文 → English"
-    }
+    },
+    "waitingForRecaptcha": "请等待人机验证完成"
   },
   "jsonError1": "JSON 必须是一个对象，不能是数组或其他类型",
   "jsonKey": "键",

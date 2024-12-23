@@ -7,6 +7,7 @@ import multer from 'multer'
 import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
 import pLimit from 'p-limit'
+import fetch from 'node-fetch' // 添加这个导入
 
 // Get current file's directory
 const __filename = fileURLToPath(import.meta.url)
@@ -16,12 +17,20 @@ const app = express()
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || /\.lvjia\.cc$/.test(origin)) {
+      // 允许没有 origin 的请求（比如本地文件访问）
+      // 允许 localhost 和 lvjia.cc 域名
+      if (
+        !origin ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        /\.lvjia\.cc$/.test(origin)
+      ) {
         callback(null, true)
       } else {
         callback(new Error('Not allowed by CORS'), false)
       }
     },
+    credentials: true, // 允许携带凭证
   }),
 )
 
@@ -171,9 +180,44 @@ function validateJsonStructure(data) {
 // Store active translations
 const activeTranslations = new Map()
 
+// 添加 reCAPTCHA 验证函数
+async function verifyRecaptcha(token) {
+  try {
+    const response = await fetch('https://www.recaptcha.net/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `secret=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe&response=${token}`,
+    })
+
+    const data = await response.json()
+
+    // 设置分数阈值为 0.3（允许大多数正常用户，但阻止明显的机器人）
+    if (data.success && data.score >= 0.3) {
+      return true
+    }
+    return false
+  } catch (error) {
+    console.error('reCAPTCHA verification failed:', error)
+    return false
+  }
+}
+
 // 修改上传处理路由
 app.post('/api/translate', upload.single('file'), async (req, res) => {
   try {
+    // 验证 reCAPTCHA token
+    const recaptchaToken = req.body.recaptcha_token
+    if (!recaptchaToken) {
+      return res.status(400).json({ error: 'Missing reCAPTCHA token' })
+    }
+
+    const isValidToken = await verifyRecaptcha(recaptchaToken)
+    if (!isValidToken) {
+      return res.status(403).json({ error: 'reCAPTCHA validation failed' })
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' })
     }

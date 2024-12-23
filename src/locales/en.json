@@ -39,7 +39,9 @@
     "translationDirection": {
       "en2zh": "English → Chinese",
       "zh2en": "Chinese → English"
-    }
+    },
+    "recaptchaError": "Human-computer verification failed, please try again",
+    "recaptchaFailed": "Human-computer verification error, please refresh the page and try again"
   },
   "jsonError1": "JSON must be an object, not an array or other type.",
   "jsonKey": "Key",

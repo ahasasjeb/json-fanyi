@@ -5,6 +5,7 @@ import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal, NSelect
 import TZ from './TZ.vue'
 import { useVisitorStore } from '../stores/visitor'
 import { useI18n } from 'vue-i18n'
+import RecaptchaVerifier from './RecaptchaVerifier.vue'
 
 const { t, locale } = useI18n()
 const message = useMessage()
@@ -173,7 +174,7 @@ onMounted(async () => {
     locale.value = savedLanguage
   }
   fetchActiveTaskCount()
-  taskCountInterval = setInterval(fetchActiveTaskCount, 10000)
+  taskCountInterval = setInterval(fetchActiveTaskCount, 3000)
 })
 
 // 收集指纹数据并发送到后端
@@ -200,6 +201,20 @@ const sendFingerprint = async (fingerprint: string) => {
   }
 }
 
+// 添加 reCAPTCHA token
+const recaptchaToken = ref('')
+
+// 处理 reCAPTCHA 验证
+const handleRecaptchaVerify = (token: string) => {
+  recaptchaToken.value = token
+}
+
+// 添加 ref 以访问 RecaptchaVerifier 组件
+const recaptchaVerifier = ref<{ reset: () => Promise<void> } | null>(null)
+
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://api2.lvjia.cc'
+
+// 修改 customRequest 函数
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
   // 如果 DNT 未开启且用户未做出选择，显示对话框
   if (!navigator.doNotTrack && !localStorage.getItem('userTrackingConsent')) {
@@ -225,14 +240,21 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     const formData = new FormData()
     formData.append('file', file.file as File)
     formData.append('direction', translationDirection.value) // 添加翻译方向
+    formData.append('recaptcha_token', recaptchaToken.value) // 添加 reCAPTCHA token
 
-    const response = await fetch('https://api2.lvjia.cc/api/translate', {
+    const response = await fetch(`${API_BASE_URL}/api/translate`, {
       method: 'POST',
       body: formData,
     })
 
     if (response.status === 429) {
       throw new Error(t('uploadForm.rateLimitError'))
+    }
+
+    if (response.status === 403) {
+      // reCAPTCHA 验证失败时重置
+      await recaptchaVerifier.value?.reset()
+      throw new Error(t('uploadForm.recaptchaFailed'))
     }
 
     if (!response.ok) {
@@ -250,7 +272,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
     // 建立 SSE 连接
     const eventSource = new EventSource(
-      `https://api2.lvjia.cc/api/translate/progress?id=${translationId}`,
+      `${API_BASE_URL}/api/translate/progress?id=${translationId}`,
     )
 
     // 保存当前的 EventSource
@@ -325,6 +347,11 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
   } catch (error) {
     message.error((error as Error).message)
     loading.value = false
+
+    // 在发生错误时也重置 reCAPTCHA
+    if ((error as Error).message.includes('429')) {
+      await recaptchaVerifier.value?.reset()
+    }
   }
 }
 
@@ -410,7 +437,7 @@ onUnmounted(() => {
 // 添加获取活动任务数量的函数
 const fetchActiveTaskCount = async () => {
   try {
-    const response = await fetch('https://api2.lvjia.cc/api/translate/active-count')
+    const response = await fetch(`${API_BASE_URL}/api/translate/active-count`)
     const data = await response.json()
     console.log('Active tasks data:', data) // 添加日志
     activeTaskCount.value = data.activeCount
@@ -484,6 +511,8 @@ let taskCountInterval: ReturnType<typeof setInterval>
           {{ t('uploadForm.saveButton') }}
         </n-button>
       </n-space>
+
+      <RecaptchaVerifier ref="recaptchaVerifier" @verify="handleRecaptchaVerify" />
 
       <n-drawer v-model:show="JavaMc" :width="drawerWidth">
         <n-drawer-content :title="t('uploadForm.tutorialTitle')" closable>

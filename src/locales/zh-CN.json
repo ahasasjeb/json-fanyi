@@ -1,5 +1,7 @@
 {
   "uploadForm": {
+    "recaptchaFailed": "人机验证失败，请重试",
+    "recaptchaError": "人机验证出错，请刷新页面重试",
     "title": "JSON 翻译工具",
     "description": "上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。在上传前选择翻译方式，默认是将英语翻译成中文。",
     "loadingText": "如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。",

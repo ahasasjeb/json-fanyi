@@ -5,6 +5,7 @@ import { NUpload, NButton, NSpace, NCard, NProgress, useMessage, NModal, NSelect
 import TZ from './TZ.vue'
 import { useVisitorStore } from '../stores/visitor'
 import { useI18n } from 'vue-i18n'
+
 const { t, locale } = useI18n()
 const message = useMessage()
 const visitorStore = useVisitorStore()
@@ -107,7 +108,6 @@ const validateJson = (file: File): Promise<boolean> => {
     reader.readAsText(file)
   })
 }
-
 // 检查 Do Not Track 设置和用户同意状态
 const checkTrackingConsent = () => {
   if (navigator.doNotTrack === '1') {
@@ -173,7 +173,7 @@ onMounted(async () => {
     locale.value = savedLanguage
   }
   fetchActiveTaskCount()
-  taskCountInterval = setInterval(fetchActiveTaskCount, 30000)
+  taskCountInterval = setInterval(fetchActiveTaskCount, 10000)
 })
 
 // 收集指纹数据并发送到后端
@@ -412,6 +412,7 @@ const fetchActiveTaskCount = async () => {
   try {
     const response = await fetch('https://api2.lvjia.cc/api/translate/active-count')
     const data = await response.json()
+    console.log('Active tasks data:', data) // 添加日志
     activeTaskCount.value = data.activeCount
     totalTaskCount.value = data.totalTasks
   } catch (error) {
@@ -426,23 +427,24 @@ let taskCountInterval: ReturnType<typeof setInterval>
 <template>
   <div class="container">
     <n-card :title="t('uploadForm.title')">
-      <!-- 添加语言选择器 -->
-      <n-select
-        v-model:value="locale"
-        :options="languageOptions"
-        @update:value="handleLanguageChange"
-        style="width: 120px; margin-bottom: 16px"
-      />
-      <!-- 在语言选择器下方添加活动任务计数器 -->
-      <p v-if="activeTaskCount > 0" class="task-count">
-        {{ t('uploadForm.activeTaskCount') }}: {{ activeTaskCount }} / {{ totalTaskCount }}
-      </p>
-      <!-- 添加翻译方向选择器 -->
-      <n-select
-        v-model:value="translationDirection"
-        :options="translationDirectionOptions"
-        style="width: 140px; margin-bottom: 16px; margin-left: 16px"
-      />
+      <div class="controls-container">
+        <n-select
+          v-model:value="locale"
+          :options="languageOptions"
+          @update:value="handleLanguageChange"
+          style="width: 120px"
+        />
+        <n-select
+          v-model:value="translationDirection"
+          :options="translationDirectionOptions"
+          style="width: 140px"
+        />
+        <!-- 修改任务计数器的显示条件和样式 -->
+        <span class="task-count">
+          {{ t('uploadForm.activeTaskCount') }}: {{ activeTaskCount }} / {{ totalTaskCount }}
+        </span>
+      </div>
+
       <p>
         {{ t('uploadForm.serverError') }}
         {{ t('uploadForm.description') }}
@@ -598,9 +600,33 @@ let taskCountInterval: ReturnType<typeof setInterval>
   }
 }
 
+/* 添加新的样式 */
+.controls-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .task-count {
   font-size: 14px;
   color: #666;
-  margin-bottom: 8px;
+  margin-left: auto; /* 将计数器推到右侧 */
+  white-space: nowrap; /* 防止文本换行 */
+}
+
+/* 响应式布局 */
+@media screen and (max-width: 768px) {
+  .controls-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .task-count {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
 }
 </style>

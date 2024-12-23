@@ -164,6 +164,11 @@ function validateJsonStructure(data) {
     throw new Error('JSON 必须是一个对象')
   }
 
+  const keyCount = Object.keys(data).length
+  if (keyCount > 1000) {
+    throw new Error(`JSON文件包含${keyCount}个键值对，超过了1000个的限制`)
+  }
+
   for (const [key, value] of Object.entries(data)) {
     if (typeof value !== 'string') {
       throw new Error(`键 "${key}" 的值必须是字符串，不允许嵌套对象或数组`)

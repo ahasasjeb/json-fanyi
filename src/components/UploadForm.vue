@@ -73,10 +73,17 @@ const validateJson = (file: File): Promise<boolean> => {
           return
         }
 
+        // 验证key数量
+        const keyCount = Object.keys(content).length
+        if (keyCount > 1000) {
+          reject(new Error(`${t('jsonError5')}${keyCount}${t('jsonError6')}`))
+          return
+        }
+
         // 验证是否只有单层键值对
         for (const [key, value] of Object.entries(content)) {
           if (typeof value !== 'string') {
-            reject(new Error(`${t('jsonKey')}${key} $t('jsonError2')`))
+            reject(new Error(`${t('jsonKey')}${key} ${t('jsonError2')}`))
             return
           }
         }
@@ -218,6 +225,10 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       method: 'POST',
       body: formData,
     })
+
+    if (response.status === 429) {
+      throw new Error(t('uploadForm.rateLimitError'))
+    }
 
     if (!response.ok) {
       const errorData = await response.json()

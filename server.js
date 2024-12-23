@@ -188,7 +188,7 @@ async function verifyRecaptcha(token) {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `secret=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe&response=${token}`,
+      body: `secret=6LeH4qMqAAAAAHg8-ZqRn2sdW5FDJcNaP954Yyfo&response=${token}`,
     })
 
     const data = await response.json()

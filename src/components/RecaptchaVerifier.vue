@@ -13,7 +13,7 @@ const loadRecaptcha = () => {
   const script = document.createElement('script')
   // 使用测试密钥
   script.src =
-    'https://recaptcha.net/recaptcha/api.js?render=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+    'https://recaptcha.net/recaptcha/api.js?render=6LeH4qMqAAAAALrzBAOHH4CGp-ZPIceKUCP5KKFq'
   script.async = true
   document.head.appendChild(script)
 
@@ -25,7 +25,7 @@ const loadRecaptcha = () => {
 const executeRecaptcha = async () => {
   try {
     // 使用测试密钥
-    const token = await window.grecaptcha.execute('6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', {
+    const token = await window.grecaptcha.execute('6LeH4qMqAAAAALrzBAOHH4CGp-ZPIceKUCP5KKFq', {
       action: 'submit',
     })
     emit('verify', token)

@@ -191,9 +191,11 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
       clients: new Set(),
     })
 
-    // Send the translation ID back to the client
-    res.setHeader('X-Translation-Id', translationId)
-    res.status(200).json({ message: 'File uploaded successfully', id: translationId })
+    // 返回 translation ID
+    res.status(200).json({
+      message: 'File uploaded successfully',
+      id: translationId,
+    })
 
     // Start translation process in background
     processTranslation(translationId).catch((error) => {
@@ -214,10 +216,15 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
   }
 })
 
+// 修改进度查询路由以增加错误处理
 app.get('/api/translate/progress', (req, res) => {
   const translationId = req.query.id
 
-  if (!translationId || !activeTranslations.has(translationId)) {
+  if (!translationId) {
+    return res.status(400).json({ error: 'Translation ID is required' })
+  }
+
+  if (!activeTranslations.has(translationId)) {
     return res.status(404).json({ error: 'Translation not found' })
   }
 

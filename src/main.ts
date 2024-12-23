@@ -8,7 +8,6 @@ import { createDiscreteApi, NMessageProvider, NButton, NSpace, NInput, NSelect }
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useVisitorStore } from './stores/visitor'
 import { createI18n } from 'vue-i18n'
-import HoneybadgerVue from '@honeybadger-io/vue'
 import zh_CN from './locales/zh-CN.json'
 import en from './locales/en.json'
 const i18n = createI18n({
@@ -25,12 +24,6 @@ app.use(pinia)
 
 // Initialize an agent at application startup.
 const fpPromise = FingerprintJS.load()
-const config = {
-  apiKey: 'hbp_DkNz1C1lVH2P6ypiFC0zl7KQUHvimV4BWlgr',
-  environment: 'production',
-}
-
-app.use(HoneybadgerVue, config)
 ;(async () => {
   // Get the visitor identifier when you need it.
   const fp = await fpPromise

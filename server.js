@@ -25,17 +25,6 @@ app.use(
   }),
 )
 
-// Serve static files from dist directory
-app.use(express.static(resolve(__dirname, 'dist')))
-
-// Serve index.html for all routes except /api
-app.all('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next()
-  }
-  res.sendFile(resolve(__dirname, 'dist', 'index.html'))
-})
-
 // Configure multer for handling file uploads
 const upload = multer({
   limits: {

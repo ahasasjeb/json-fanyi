@@ -15,12 +15,20 @@ const __dirname = dirname(__filename)
 const app = express()
 app.use(cors())
 
-// Redirect to trailing slash
+// Redirect to trailing slash, but skip static assets and files
 app.use((req, res, next) => {
-  if (req.path !== '/' && !req.path.endsWith('/')) {
-    return res.redirect(301, req.path + '/')
+  const pathWithoutSlash = req.path.replace(/\/+$/, '')
+  const isStaticAsset = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i.test(
+    pathWithoutSlash,
+  )
+
+  // 如果是静态资源或已经以/结尾或是根路径，则跳过重定向
+  if (isStaticAsset || req.path.endsWith('/') || req.path === '/') {
+    return next()
   }
-  next()
+
+  // 只对非静态资源的路径添加斜杠
+  return res.redirect(301, req.path + '/')
 })
 
 // Serve static files from dist directory

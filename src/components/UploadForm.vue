@@ -221,7 +221,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     formData.append('file', file.file as File)
     formData.append('direction', translationDirection.value) // 添加翻译方向
 
-    const response = await fetch('/api/translate', {
+    const response = await fetch('https://api2.lvjia.cc/translate', {
       method: 'POST',
       body: formData,
     })
@@ -237,7 +237,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
 
     // Then establish SSE connection for progress updates
     const eventSource = new EventSource(
-      `/api/translate/progress?id=${response.headers.get('X-Translation-Id')}`,
+      `https://api2.lvjia.cc/translate/progress?id=${response.headers.get('X-Translation-Id')}`,
     )
 
     // 保存当前的 EventSource

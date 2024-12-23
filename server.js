@@ -13,7 +13,17 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const app = express()
-app.use(cors())
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || /\.lvjia\.cc$/.test(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'), false)
+      }
+    },
+  }),
+)
 
 // Serve static files from dist directory
 app.use(express.static(resolve(__dirname, 'dist')))

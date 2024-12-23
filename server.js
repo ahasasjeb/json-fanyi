@@ -207,7 +207,7 @@ async function verifyRecaptcha(token) {
 // 添加新的延迟函数
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// 修改 upload 路由
+// 修改 upload 路由，添加超时计算
 app.post('/api/translate', upload.single('file'), async (req, res) => {
   try {
     // 验证 reCAPTCHA token
@@ -237,6 +237,12 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
       processingStarted: false, // 新增标志
       readyToStart: false, // 新增标志
     })
+
+    // 读取并解析JSON以计算超时时间
+    const fileContent = await fs.readFile(req.file.path, 'utf8')
+    const data = JSON.parse(fileContent)
+    const keyCount = Object.keys(data).length
+    const timeout = Math.ceil(keyCount * 0.7) * 1000 // 将键值对数量乘以0.7秒转换为毫
 
     // 等待一小段时间，确保客户端有机会建立 SSE 连接
     setTimeout(async () => {

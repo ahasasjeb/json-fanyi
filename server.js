@@ -317,8 +317,9 @@ app.get('/api/translate/progress', (req, res) => {
         return
       }
 
+      // 只有在实际超时时才发送timeout事件
       const elapsed = Date.now() - currentTranslation.startTime
-      if (elapsed >= currentTranslation.timeout) {
+      if (elapsed >= currentTranslation.timeout && currentTranslation.status !== 'complete') {
         sendEvent('timeout', {
           progress: currentTranslation.progress,
           translatedData: currentTranslation.translatedData,
@@ -343,11 +344,14 @@ app.get('/api/translate/progress', (req, res) => {
         })
         clearInterval(progressInterval)
         scheduleFileDeletion(currentTranslation.inputPath)
-        activeTranslations.delete(translationId) // 在发送完成事件后再删除
+        activeTranslations.delete(translationId)
         res.end()
       }
     } catch (error) {
-      console.error('Error sending progress:', error)
+      // 发生错误时也要发送error事件
+      sendEvent('error', {
+        error: error.message || 'An unknown error occurred',
+      })
       clearInterval(progressInterval)
       res.end()
     }

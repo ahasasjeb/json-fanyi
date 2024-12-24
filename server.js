@@ -55,7 +55,7 @@ await fs.mkdir('./uploads', { recursive: true })
 
 // Initialize OpenAI client
 const client = new OpenAI({
-  apiKey: 'sk-b5PNISBh0VIMLl59t1lQUbAsFXQOHaZd00El5hYha2uLJBIU',
+  apiKey: 'sk-K8riFX9hm5zwhRXKRSlrOyg8pcNLmi0r8OKWGiPSkeNPVnWD',
   baseURL: 'https://api.lvjia1.top/v1',
 })
 

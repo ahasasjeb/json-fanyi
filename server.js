@@ -10,7 +10,7 @@ import pLimit from 'p-limit'
 import fetch from 'node-fetch' // 添加这个导入
 
 // 修改环境变量判断，支持 Windows
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined
+const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Get current file's directory
 const __filename = fileURLToPath(import.meta.url)

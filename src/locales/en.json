@@ -42,7 +42,9 @@
     },
     "recaptchaError": "Human-computer verification failed, please try again",
     "recaptchaFailed": "Human-computer verification error, please refresh the page and try again",
-    "waitingForRecaptcha": "Please wait for the completion of human-computer verification"
+    "waitingForRecaptcha": "Please wait for the completion of human-computer verification",
+    "timeoutWarning": "Translation timeout",
+    "dataError": "Error parsing data"
   },
   "jsonError1": "JSON must be an object, not an array or other type.",
   "jsonKey": "Key",

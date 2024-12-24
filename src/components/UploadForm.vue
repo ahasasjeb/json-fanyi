@@ -309,8 +309,8 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           console.log('SSE received:', data) // 添加调试日志
 
           switch (data.type) {
-            case 'pending':
-              progress.value = data.progress
+            case 'progress':
+              progress.value = data.progress || 0
               if (data.lastTranslated) {
                 currentKey.value = `${t('T')} ${data.lastTranslated.key}`
               }
@@ -342,8 +342,6 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
               } else {
                 message.error(data.error || t('Error2'))
               }
-              closeCurrentEventSource()
-              loading.value = false
               break
           }
         } catch (error) {

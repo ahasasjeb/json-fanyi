@@ -60,7 +60,7 @@ const client = new OpenAI({
 })
 
 // Create a concurrency limiter
-const limit = pLimit(3)
+const limit = pLimit(10)
 
 // Add delay between retries
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -249,22 +249,16 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
       translatedData: {},
     })
 
-    // 立即开始翻译 => 改为同步等待
-    await processTranslation(translationId)
+    // 去掉同步等待，改为后台执行
+    processTranslation(translationId).catch((err) => {
+      console.error('Async translation error:', err)
+    })
 
-    const translation = activeTranslations.get(translationId)
-    if (translation.status === 'complete') {
-      return res.status(200).json({
-        message: 'Translation completed',
-        id: translationId,
-        translatedData: translation.translatedData,
-      })
-    } else if (translation.status === 'error') {
-      return res.status(500).json({ error: translation.error })
-    }
-    res.status(200).json({
-      status: translation.status,
-      progress: translation.progress,
+    // 立即返回
+    return res.status(200).json({
+      message: 'Translation started',
+      id: translationId,
+      status: 'pending',
     })
   } catch (error) {
     console.error('Upload error:', error)
@@ -296,36 +290,64 @@ app.get('/api/translate/progress', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
+  res.setHeader('X-Accel-Buffering', 'no') // 禁用缓冲
 
   const sendEvent = (eventType, data) => {
     res.write(`data: ${JSON.stringify({ type: eventType, ...data })}\n\n`)
+    if (typeof res.flush === 'function') {
+      res.flush() // 刷新缓冲
+    }
   }
 
-  // 检查是否超时
-  const elapsed = Date.now() - translation.startTime
-  if (elapsed >= translation.timeout) {
-    sendEvent('timeout', {
-      progress: translation.progress,
-      translatedData: translation.translatedData,
-    })
+  // 每次更新进度的事件发送器
+  const progressInterval = setInterval(() => {
+    try {
+      const currentTranslation = activeTranslations.get(translationId)
+      if (!currentTranslation) {
+        clearInterval(progressInterval)
+        return
+      }
 
-    // 清理任务
-    scheduleFileDeletion(translation.inputPath)
-    activeTranslations.delete(translationId)
+      const elapsed = Date.now() - currentTranslation.startTime
+      if (elapsed >= currentTranslation.timeout) {
+        sendEvent('timeout', {
+          progress: currentTranslation.progress,
+          translatedData: currentTranslation.translatedData,
+        })
+        clearInterval(progressInterval)
+        scheduleFileDeletion(currentTranslation.inputPath)
+        activeTranslations.delete(translationId)
+        res.end()
+        return
+      }
 
-    res.end()
-    return
-  }
+      // 发送进度更新
+      sendEvent('progress', {
+        progress: currentTranslation.progress,
+        lastTranslated: currentTranslation.lastTranslated,
+      })
 
-  // 发送当前状态
-  sendEvent(translation.status, {
-    progress: translation.progress,
-    translatedData: translation.translatedData,
+      // 如果翻译完成，发送完成事件并结束连接
+      if (currentTranslation.status === 'complete') {
+        sendEvent('complete', {
+          translatedData: currentTranslation.translatedData,
+        })
+        clearInterval(progressInterval)
+        scheduleFileDeletion(currentTranslation.inputPath)
+        activeTranslations.delete(translationId) // 在发送完成事件后再删除
+        res.end()
+      }
+    } catch (error) {
+      console.error('Error sending progress:', error)
+      clearInterval(progressInterval)
+      res.end()
+    }
+  }, 1000) // 每秒更新一次进度
+
+  // 当客户端断开连接时清理interval
+  res.on('close', () => {
+    clearInterval(progressInterval)
   })
-
-  if (translation.status === 'complete') {
-    res.end()
-  }
 })
 
 // 修改 processTranslation 函数
@@ -352,7 +374,6 @@ async function processTranslation(translationId) {
         const tasks = entries.map(([key, value]) =>
           limit(async () => {
             if (Date.now() - translation.startTime >= translation.timeout) {
-              console.log(`Translation ${translationId} timed out`)
               return
             }
             if (typeof value === 'string') {
@@ -365,13 +386,17 @@ async function processTranslation(translationId) {
                   context,
                 )
                 translation.translatedData[key] = translatedValue
-                translation.lastTranslated = { key, value: translatedValue } // 添加最后翻译的项
+                translation.lastTranslated = { key, value: translatedValue }
+                completed++
+                translation.progress = Math.round((completed / total) * 100)
+                // 每次翻译完成后更新状态
+                translation.status = completed === total ? 'complete' : 'pending'
               } catch (error) {
                 console.error(`Error translating "${key}":`, error)
                 translation.translatedData[key] = value
+                completed++
+                translation.progress = Math.round((completed / total) * 100)
               }
-              completed++
-              translation.progress = Math.round((completed / total) * 100)
             }
           }),
         )

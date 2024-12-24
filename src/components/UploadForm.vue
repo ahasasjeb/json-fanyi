@@ -231,6 +231,14 @@ interface TranslationResponse {
   error?: string
 }
 
+// 添加重置状态的函数
+const resetState = () => {
+  loading.value = false
+  progress.value = 0
+  currentKey.value = ''
+  closeCurrentEventSource()
+}
+
 // 修改 customRequest 函数
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
   try {
@@ -238,6 +246,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     if (!recaptchaToken.value) {
       message.warning(t('uploadForm.waitingForRecaptcha') || '请等待人机验证完成')
       await recaptchaVerifier.value?.reset()
+      resetState()
       return
     }
 
@@ -273,6 +282,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       })
 
       if (response.status === 429) {
+        resetState()
         throw new Error(t('uploadForm.rateLimitError'))
       }
 
@@ -284,11 +294,13 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
           message.error(t('uploadForm.recaptchaFailed'))
         }
         await recaptchaVerifier.value?.reset()
+        resetState()
         return
       }
 
       if (!response.ok) {
         const errorData = await response.json()
+        resetState()
         throw new Error(errorData.error || t('Upload.error'))
       }
 
@@ -363,13 +375,13 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
         if (eventSource.readyState === EventSource.CLOSED) {
           message.error(t('uploadForm.connectionError'))
           closeCurrentEventSource()
-          loading.value = false
+          resetState()
           recaptchaVerifier.value?.reset()
         }
       }
     } catch (error) {
       message.error((error as Error).message)
-      loading.value = false
+      resetState()
 
       // 在发生错误时也重置 reCAPTCHA
       if ((error as Error).message.includes('429')) {
@@ -381,7 +393,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     await recaptchaVerifier.value?.reset()
   } catch (error) {
     message.error((error as Error).message)
-    loading.value = false
+    resetState()
 
     // 在发生错误时也重置 reCAPTCHA
     await recaptchaVerifier.value?.reset()

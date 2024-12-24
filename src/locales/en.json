@@ -44,7 +44,8 @@
     "recaptchaFailed": "Human-computer verification error, please refresh the page and try again",
     "waitingForRecaptcha": "Please wait for the completion of human-computer verification",
     "timeoutWarning": "Translation timeout",
-    "dataError": "Error parsing data"
+    "dataError": "Error parsing data",
+    "recaptchaScoreTooLow": "The human-machine verification score is too low, please re verify, score:"
   },
   "jsonError1": "JSON must be an object, not an array or other type.",
   "jsonKey": "Key",

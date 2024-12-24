@@ -45,7 +45,7 @@
     "waitingForRecaptcha": "请等待人机验证完成",
     "timeoutWarning": "翻译超时",
     "dataError": "解析数据时出错",
-    "recaptchaScoreTooLow": "人机验证分数过低，请重新验证"
+    "recaptchaScoreTooLow": "人机验证分数过低，请重新验证，分数："
   },
   "jsonError1": "JSON 必须是一个对象，不能是数组或其他类型",
   "jsonKey": "键",

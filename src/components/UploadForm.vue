@@ -347,15 +347,13 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
               } else {
                 message.error(data.error || t('Error2'))
               }
-              closeCurrentEventSource()
-              loading.value = false // 确保在错误时重置loading状态
               break
           }
         } catch (error) {
           console.error('Error parsing SSE data:', error, event.data)
           message.error(t('uploadForm.dataError'))
           closeCurrentEventSource()
-          loading.value = false // 确保在错误时重置loading状态
+          loading.value = false
         }
       }
 
@@ -365,7 +363,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
         if (eventSource.readyState === EventSource.CLOSED) {
           message.error(t('uploadForm.connectionError'))
           closeCurrentEventSource()
-          loading.value = false // 确保在错误时重置loading状态
+          loading.value = false
           recaptchaVerifier.value?.reset()
         }
       }
@@ -383,7 +381,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
     await recaptchaVerifier.value?.reset()
   } catch (error) {
     message.error((error as Error).message)
-    loading.value = false // 确保在错误时重置loading状态
+    loading.value = false
 
     // 在发生错误时也重置 reCAPTCHA
     await recaptchaVerifier.value?.reset()

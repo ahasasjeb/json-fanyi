@@ -197,7 +197,7 @@ async function verifyRecaptcha(token) {
     const data = await response.json()
 
     if (data.success) {
-      if (data.score >= 0.3) {
+      if (data.score >= 0.1) {
         return { success: true, score: data.score }
       } else {
         return { success: false, error: 'low_score', score: data.score }
@@ -317,9 +317,8 @@ app.get('/api/translate/progress', (req, res) => {
         return
       }
 
-      // 只有在实际超时时才发送timeout事件
       const elapsed = Date.now() - currentTranslation.startTime
-      if (elapsed >= currentTranslation.timeout && currentTranslation.status !== 'complete') {
+      if (elapsed >= currentTranslation.timeout) {
         sendEvent('timeout', {
           progress: currentTranslation.progress,
           translatedData: currentTranslation.translatedData,
@@ -344,14 +343,11 @@ app.get('/api/translate/progress', (req, res) => {
         })
         clearInterval(progressInterval)
         scheduleFileDeletion(currentTranslation.inputPath)
-        activeTranslations.delete(translationId)
+        activeTranslations.delete(translationId) // 在发送完成事件后再删除
         res.end()
       }
     } catch (error) {
-      // 发生错误时也要发送error事件
-      sendEvent('error', {
-        error: error.message || 'An unknown error occurred',
-      })
+      console.error('Error sending progress:', error)
       clearInterval(progressInterval)
       res.end()
     }

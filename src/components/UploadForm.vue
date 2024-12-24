@@ -277,9 +277,14 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       }
 
       if (response.status === 403) {
-        // reCAPTCHA 验证失败时重置
+        const errorData = await response.json()
+        if (errorData.error === 'reCAPTCHA score too low') {
+          message.error(`${t('uploadForm.recaptchaScoreTooLow')} (${errorData.score})`)
+        } else {
+          message.error(t('uploadForm.recaptchaFailed'))
+        }
         await recaptchaVerifier.value?.reset()
-        throw new Error(t('uploadForm.recaptchaFailed'))
+        return
       }
 
       if (!response.ok) {

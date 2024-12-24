@@ -196,14 +196,17 @@ async function verifyRecaptcha(token) {
 
     const data = await response.json()
 
-    // 设置分数阈值为 0.3（允许大多数正常用户，但阻止明显的机器人）
-    if (data.success && data.score >= 0.3) {
-      return true
+    if (data.success) {
+      if (data.score >= 0.3) {
+        return { success: true, score: data.score }
+      } else {
+        return { success: false, error: 'low_score', score: data.score }
+      }
     }
-    return false
+    return { success: false, error: 'verification_failed' }
   } catch (error) {
     console.error('reCAPTCHA verification failed:', error)
-    return false
+    return { success: false, error: 'verification_error' }
   }
 }
 
@@ -220,8 +223,14 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
         return res.status(400).json({ error: 'Missing reCAPTCHA token' })
       }
 
-      const isValidToken = await verifyRecaptcha(recaptchaToken)
-      if (!isValidToken) {
+      const verifyResult = await verifyRecaptcha(recaptchaToken)
+      if (!verifyResult.success) {
+        if (verifyResult.error === 'low_score') {
+          return res.status(403).json({
+            error: 'reCAPTCHA score too low',
+            score: verifyResult.score,
+          })
+        }
         return res.status(403).json({ error: 'reCAPTCHA validation failed' })
       }
     }

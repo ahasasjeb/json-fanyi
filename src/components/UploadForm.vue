@@ -46,7 +46,9 @@ const handleLanguageChange = (value: string) => {
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
   if (currentEventSource.value) {
-    currentEventSource.value.close()
+    if (currentEventSource.value.readyState !== EventSource.CLOSED) {
+      currentEventSource.value.close()
+    }
     currentEventSource.value = null
   }
 }
@@ -177,6 +179,11 @@ onMounted(async () => {
   taskCountInterval = setInterval(fetchActiveTaskCount, 3000)
   // 等待首次 reCAPTCHA 验证
   await recaptchaVerifier.value?.reset()
+  recaptchaRefreshInterval = setInterval(() => {
+    if (!loading.value) {
+      recaptchaVerifier.value?.reset()
+    }
+  }, 110000) // 每110秒刷新一次token
 })
 
 // 收集指纹数据并发送到后端
@@ -215,6 +222,14 @@ const handleRecaptchaVerify = (token: string) => {
 const recaptchaVerifier = ref<{ reset: () => Promise<void> } | null>(null)
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://api2.lvjia.cc'
+
+// 添加接口类型定义
+interface TranslationResponse {
+  id: string
+  status: 'pending' | 'complete' | 'error' | 'timeout'
+  translatedData?: Record<string, string>
+  error?: string
+}
 
 // 修改 customRequest 函数
 const customRequest = async ({ file }: UploadCustomRequestOptions) => {
@@ -289,68 +304,65 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       currentEventSource.value = eventSource
 
       eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data)
+        try {
+          const data = JSON.parse(event.data)
+          console.log('SSE received:', data) // 添加调试日志
 
-        switch (data.type) {
-          case 'progress':
-            progress.value = data.percentage
-            if (data.lastTranslated) {
-              currentKey.value = `${t('T')} ${data.lastTranslated.key}`
-            }
-            break
-
-          case 'chunk':
-            // Initialize chunks array if this is the first chunk
-            if (data.chunkIndex === 0) {
-              contentChunks.value = new Array(data.totalChunks)
-              totalChunks.value = data.totalChunks
-            }
-
-            // Store the chunk
-            contentChunks.value[data.chunkIndex] = data.data
-
-            // If we have all chunks, combine them and parse
-            if (contentChunks.value.filter(Boolean).length === totalChunks.value) {
-              try {
-                const fullContent = contentChunks.value.join('')
-                translatedContent.value = JSON.stringify(JSON.parse(fullContent), null, 2)
-                // Clear chunks array
-                contentChunks.value = []
-                totalChunks.value = 0
-              } catch (error) {
-                message.error(t('Error3'))
-                closeCurrentEventSource()
-                loading.value = false
+          switch (data.type) {
+            case 'pending':
+              progress.value = data.progress
+              if (data.lastTranslated) {
+                currentKey.value = `${t('T')} ${data.lastTranslated.key}`
               }
-            }
-            break
+              break
 
-          case 'error':
-            if (data.key) {
-              message.warning(`$t('translate') "${data.key}"$t('error4') ${data.error}`)
-            } else {
-              message.error(data.error || t('Error2'))
+            case 'complete':
+              if (data.translatedData) {
+                translatedContent.value = JSON.stringify(data.translatedData, null, 2)
+                handleTranslationComplete()
+              } else {
+                message.error(t('uploadForm.translationError'))
+              }
               closeCurrentEventSource()
               loading.value = false
-            }
-            break
+              break
 
-          case 'complete':
-            if (!translatedContent.value) {
-              message.error(t('uploadForm.translationError'))
+            case 'timeout':
+              message.warning(t('uploadForm.timeoutWarning'))
+              if (data.translatedData) {
+                translatedContent.value = JSON.stringify(data.translatedData, null, 2)
+              }
               closeCurrentEventSource()
               loading.value = false
-              return
-            }
-            handleTranslationComplete()
-            break
+              break
+
+            case 'error':
+              if (data.key) {
+                message.warning(`${t('translate')} "${data.key}" ${t('error4')} ${data.error}`)
+              } else {
+                message.error(data.error || t('Error2'))
+              }
+              closeCurrentEventSource()
+              loading.value = false
+              break
+          }
+        } catch (error) {
+          console.error('Error parsing SSE data:', error, event.data)
+          message.error(t('uploadForm.dataError'))
+          closeCurrentEventSource()
+          loading.value = false
         }
       }
 
-      eventSource.onerror = () => {
-        message.error(t('uploadForm.connectionError'))
-        closeCurrentEventSource()
-        loading.value = false
+      eventSource.onerror = (error) => {
+        console.error('EventSource error:', error)
+        // 只有在连接确实断开时才显示错误
+        if (eventSource.readyState === EventSource.CLOSED) {
+          message.error(t('uploadForm.connectionError'))
+          closeCurrentEventSource()
+          loading.value = false
+          recaptchaVerifier.value?.reset()
+        }
       }
     } catch (error) {
       message.error((error as Error).message)
@@ -388,6 +400,9 @@ onUnmounted(() => {
   cleanupCurrentReader()
   if (taskCountInterval) {
     clearInterval(taskCountInterval)
+  }
+  if (recaptchaRefreshInterval) {
+    clearInterval(recaptchaRefreshInterval)
   }
 })
 
@@ -476,6 +491,7 @@ const fetchActiveTaskCount = async () => {
 
 // 每30秒更新一次活动任务数量
 let taskCountInterval: ReturnType<typeof setInterval>
+let recaptchaRefreshInterval: ReturnType<typeof setInterval>
 </script>
 
 <template>

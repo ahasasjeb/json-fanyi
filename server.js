@@ -9,6 +9,9 @@ import { v4 as uuidv4 } from 'uuid'
 import pLimit from 'p-limit'
 import fetch from 'node-fetch' // 添加这个导入
 
+// 修改环境变量判断，支持 Windows
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined
+
 // Get current file's directory
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -210,15 +213,17 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 // 修改 upload 路由
 app.post('/api/translate', upload.single('file'), async (req, res) => {
   try {
-    // 验证 reCAPTCHA token
-    const recaptchaToken = req.body.recaptcha_token
-    if (!recaptchaToken) {
-      return res.status(400).json({ error: 'Missing reCAPTCHA token' })
-    }
+    // 在开发环境下跳过 reCAPTCHA 验证
+    if (!isDevelopment) {
+      const recaptchaToken = req.body.recaptcha_token
+      if (!recaptchaToken) {
+        return res.status(400).json({ error: 'Missing reCAPTCHA token' })
+      }
 
-    const isValidToken = await verifyRecaptcha(recaptchaToken)
-    if (!isValidToken) {
-      return res.status(403).json({ error: 'reCAPTCHA validation failed' })
+      const isValidToken = await verifyRecaptcha(recaptchaToken)
+      if (!isValidToken) {
+        return res.status(403).json({ error: 'reCAPTCHA validation failed' })
+      }
     }
 
     if (!req.file) {
@@ -244,21 +249,37 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
       translatedData: {},
     })
 
-    // 立即开始翻译
-    processTranslation(translationId)
+    // 立即开始翻译 => 改为同步等待
+    await processTranslation(translationId)
 
+    const translation = activeTranslations.get(translationId)
+    if (translation.status === 'complete') {
+      return res.status(200).json({
+        message: 'Translation completed',
+        id: translationId,
+        translatedData: translation.translatedData,
+      })
+    } else if (translation.status === 'error') {
+      return res.status(500).json({ error: translation.error })
+    }
     res.status(200).json({
-      message: 'File uploaded successfully',
-      id: translationId,
-      timeout,
+      status: translation.status,
+      progress: translation.progress,
     })
   } catch (error) {
     console.error('Upload error:', error)
-    res.status(500).json({ error: 'Upload failed' })
+    // 清理上传的文件
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(console.error)
+    }
+    res.status(500).json({
+      error: error.message || 'Upload failed',
+      details: isDevelopment ? error.stack : undefined,
+    })
   }
 })
 
-// 简化进度查询路由
+// 修改进度查询路由
 app.get('/api/translate/progress', (req, res) => {
   const translationId = req.query.id
 
@@ -271,29 +292,40 @@ app.get('/api/translate/progress', (req, res) => {
     return res.status(404).json({ error: 'Translation not found' })
   }
 
+  // 设置 SSE headers
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+
+  const sendEvent = (eventType, data) => {
+    res.write(`data: ${JSON.stringify({ type: eventType, ...data })}\n\n`)
+  }
+
   // 检查是否超时
   const elapsed = Date.now() - translation.startTime
   if (elapsed >= translation.timeout) {
-    // 如果超时，返回已翻译的内容
-    const result = {
-      status: 'timeout',
+    sendEvent('timeout', {
       progress: translation.progress,
       translatedData: translation.translatedData,
-      message: 'Translation timeout reached',
-    }
+    })
 
     // 清理任务
     scheduleFileDeletion(translation.inputPath)
     activeTranslations.delete(translationId)
 
-    return res.json(result)
+    res.end()
+    return
   }
 
-  res.json({
-    status: translation.status,
+  // 发送当前状态
+  sendEvent(translation.status, {
     progress: translation.progress,
     translatedData: translation.translatedData,
   })
+
+  if (translation.status === 'complete') {
+    res.end()
+  }
 })
 
 // 修改 processTranslation 函数
@@ -301,42 +333,61 @@ async function processTranslation(translationId) {
   const translation = activeTranslations.get(translationId)
   if (!translation) return
 
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Translation timeout'))
+    }, translation.timeout)
+  })
+
   try {
-    const data = JSON.parse(await fs.readFile(translation.inputPath, 'utf8'))
-    validateJsonStructure(data)
+    await Promise.race([
+      (async () => {
+        const data = JSON.parse(await fs.readFile(translation.inputPath, 'utf8'))
+        validateJsonStructure(data)
 
-    const entries = Object.entries(data)
-    const total = entries.length
-    let completed = 0
+        const entries = Object.entries(data)
+        const total = entries.length
+        let completed = 0
 
-    for (const [key, value] of entries) {
-      // 检查是否已超时
-      if (Date.now() - translation.startTime >= translation.timeout) {
-        console.log(`Translation ${translationId} timed out`)
-        break
-      }
+        const tasks = entries.map(([key, value]) =>
+          limit(async () => {
+            if (Date.now() - translation.startTime >= translation.timeout) {
+              console.log(`Translation ${translationId} timed out`)
+              return
+            }
+            if (typeof value === 'string') {
+              try {
+                const context = getSimilarTranslations(key, data, translation.translatedData)
+                const translatedValue = await translateValue(
+                  value,
+                  key,
+                  translation.direction,
+                  context,
+                )
+                translation.translatedData[key] = translatedValue
+                translation.lastTranslated = { key, value: translatedValue } // 添加最后翻译的项
+              } catch (error) {
+                console.error(`Error translating "${key}":`, error)
+                translation.translatedData[key] = value
+              }
+              completed++
+              translation.progress = Math.round((completed / total) * 100)
+            }
+          }),
+        )
 
-      if (typeof value === 'string') {
-        await limit(async () => {
-          try {
-            const context = getSimilarTranslations(key, data, translation.translatedData)
-            const translatedValue = await translateValue(value, key, translation.direction, context)
-            translation.translatedData[key] = translatedValue
-          } catch (error) {
-            console.error(`Error translating "${key}":`, error)
-            translation.translatedData[key] = value
-          }
-          completed++
-          translation.progress = Math.round((completed / total) * 100)
-        })
-      }
-    }
-
-    translation.status = 'complete'
+        await Promise.all(tasks)
+        translation.status = 'complete'
+      })(),
+      timeoutPromise,
+    ])
   } catch (error) {
-    console.error('Translation error:', error)
-    translation.status = 'error'
-    translation.error = error.message
+    if (error.message === 'Translation timeout') {
+      translation.status = 'timeout'
+    } else {
+      translation.status = 'error'
+      translation.error = error.message
+    }
   }
 }
 
@@ -366,6 +417,20 @@ app.get('/api/translate/active-count', (req, res) => {
     totalTasks: activeTranslations.size,
   })
 })
+
+// 添加清理过期翻译的功能
+function cleanupExpiredTranslations() {
+  for (const [id, translation] of activeTranslations.entries()) {
+    const elapsed = Date.now() - translation.startTime
+    if (elapsed >= translation.timeout || translation.status === 'complete') {
+      scheduleFileDeletion(translation.inputPath)
+      activeTranslations.delete(id)
+    }
+  }
+}
+
+// 定期清理过期翻译
+setInterval(cleanupExpiredTranslations, 5 * 60 * 1000) // 每5分钟清理一次
 
 const PORT = 3000
 app.listen(PORT, () => {

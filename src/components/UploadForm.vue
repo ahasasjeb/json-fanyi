@@ -345,9 +345,13 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
               break
 
             case 'timeout':
-              message.warning(t('uploadForm.timeoutWarning'))
               if (data.translatedData) {
                 translatedContent.value = JSON.stringify(data.translatedData, null, 2)
+                // 如果有完整的翻译数据，当作正常完成处理
+                handleTranslationComplete()
+              } else {
+                // 只有在没有翻译数据时才显示超时警告
+                message.warning(t('uploadForm.timeoutWarning'))
               }
               closeCurrentEventSource()
               loading.value = false

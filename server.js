@@ -65,15 +65,8 @@ const limit = pLimit(10)
 // Add delay between retries
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// 随机选择模型
-function getRandomModel() {
-  const models = ['mc-gpt-4o-mini', 'deepseek-chat']
-  const randomIndex = Math.floor(Math.random() * models.length)
-  return models[randomIndex]
-}
-
-// 修改 translateValue 函数
-async function translateValue(text, key, direction, context = null) {
+// 移除随机模型选择函数，改为从请求中获取模型
+async function translateValue(text, key, direction, context = null, model) {
   let attempts = 0
 
   while (true) {
@@ -121,7 +114,7 @@ Current key name: ${key}`
       messages.push({ role: 'user', content: `${text}` })
 
       const response = await client.chat.completions.create({
-        model: getRandomModel(),
+        model: model, // 使用传入的模型
         messages: messages,
         temperature: 0.3,
       })
@@ -251,6 +244,7 @@ app.post('/api/translate', upload.single('file'), async (req, res) => {
     activeTranslations.set(translationId, {
       inputPath,
       direction: req.body.direction || 'en2zh',
+      model: req.body.model, // 添加模型参数
       status: 'pending',
       progress: 0,
       timeout,
@@ -393,6 +387,7 @@ async function processTranslation(translationId) {
                   key,
                   translation.direction,
                   context,
+                  translation.model, // 传入选定的模型
                 )
                 translation.translatedData[key] = translatedValue
                 translation.lastTranslated = { key, value: translatedValue }

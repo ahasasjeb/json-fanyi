@@ -43,6 +43,22 @@ const handleLanguageChange = (value: string) => {
   localStorage.setItem('userLanguage', value)
 }
 
+// 添加模型选择选项
+const modelOptions = [
+  { label: 'mc翻译微调 gpt-4o v2 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY38Zo' },
+  {
+    label: 'mc翻译微调 gpt-4o v2 1018步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY2zLC:ckpt-step-1018',
+  },
+  {
+    label: 'mc翻译微调 gpt-4o v2 509步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY2B65:ckpt-step-509',
+  },
+  { label: 'mc翻译微调gpt-4o v1', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc-lvjia:AiCudjZt' },
+  { label: 'deepseek-chat 非Mc相关首选', value: 'deepseek-chat' },
+]
+const selectedModel = ref(modelOptions[0].value)
+
 // 关闭当前的 EventSource 连接
 const closeCurrentEventSource = () => {
   if (currentEventSource.value) {
@@ -274,6 +290,7 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       const formData = new FormData()
       formData.append('file', file.file as File)
       formData.append('direction', translationDirection.value) // 添加翻译方向
+      formData.append('model', selectedModel.value) // 添加选择的模型
       formData.append('recaptcha_token', recaptchaToken.value) // 添加 reCAPTCHA token
 
       const response = await fetch(`${API_BASE_URL}/api/translate`, {
@@ -528,6 +545,8 @@ let recaptchaRefreshInterval: ReturnType<typeof setInterval>
           :options="translationDirectionOptions"
           style="width: 140px"
         />
+        <!-- 添加模型选择器 -->
+        <n-select v-model:value="selectedModel" :options="modelOptions" style="width: 260px" />
         <!-- 修改任务计数器的显示条件和样式 -->
         <span class="task-count">
           {{ t('uploadForm.activeTaskCount') }}: {{ activeTaskCount }} / {{ totalTaskCount }}

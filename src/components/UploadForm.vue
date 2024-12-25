@@ -563,10 +563,9 @@ let recaptchaRefreshInterval: ReturnType<typeof setInterval>
       </div>
 
       <p>
-        {{ t('uploadForm.serverError') }}
-        {{ t('uploadForm.description') }}
+        {{ t('uploadForm.description') }}<br />
         {{ t('uploadForm.loadingText') }}<br />
-        {{ t('uploadForm.modelInfo') }}
+        {{ t('uploadForm.modelInfo') }}<br />
         <br />{{ t('uploadForm.mcInfo') }}<br />
         <code>h@lvjia.cc</code><br />
         {{ t('uploadForm.emailContact') }}

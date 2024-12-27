@@ -46,12 +46,12 @@ const handleLanguageChange = (value: string) => {
 // 添加模型选择选项
 const modelOptions = [
   {
-    label: 'gpt-4o-mini',
-    value: 'gpt-4o-mini',
-  },
-  {
     label: 'mc翻译微调 gpt-4o v4-4 完全体',
     value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj2227Q3',
+  },
+  {
+    label: 'gpt-4o-mini',
+    value: 'gpt-4o-mini',
   },
   {
     label: 'mc翻译微调 gpt-4o v4-4 75步进',

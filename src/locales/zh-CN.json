@@ -4,7 +4,7 @@
   "uploadForm.title": "JSON 翻译工具",
   "uploadForm.description": "上传一个 JSON 文件，可以自动翻译成中文，请务必选择非嵌套json文件。在上传前选择翻译方式，默认是将英语翻译成中文。",
   "uploadForm.loadingText": "如果卡在某个值半天没有翻译进展，多等等，不要刷新，因为上游负载满了，1分钟左右可能就恢复了。也有可能是最近24小时没有人使用你选择的模型，OpenAI的服务器需要至少6秒来启动模型。",
-  "uploadForm.modelInfo": "使用gpt-4o-mini与deepseek-chat进行翻译。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。mc微调 gpt-4o-mini v3 完全体 对中文翻译到英文的能力进行了训练。",
+  "uploadForm.modelInfo": "使用gpt-4o-mini与deepseek-chat进行翻译。没听过DeepSeek？这模型和gpt-4o-mini差不多，便宜还快。mc微调 gpt-4o-mini v4 完全体 对中文翻译到英文的能力进行了训练。",
   "uploadForm.mcInfo": "Minecraft模组苦苦汉化？上传到这里自动汉化翻译Java版Minecraft模组。",
   "uploadForm.emailContact": "对于基岩版，可以通过邮箱 h{'@'}lvjia.cc 来告诉我，需要的人多就开发一个。",
   "uploadForm.uploadButton": "上传 JSON 文件",

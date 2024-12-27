@@ -3,7 +3,7 @@
   "uploadForm.recaptchaFailed": "reCAPTCHA failed, please refresh",
   "uploadForm.mcInfo": "Upload your Minecraft Java mod here for automatic translation",
   "uploadForm.recaptchaError": "reCAPTCHA error, please refresh",
-  "uploadForm.modelInfo": "uploadForm.modelInfo",
+  "uploadForm.modelInfo": "Translation using gpt-4o-mini with deepseek-chat. Never heard of DeepSeek?This model is about the same as gpt-4o-mini, cheaper and faster.Minecraft fine-tuning gpt-4o-mini v4 full body Trained for Chinese to English translation.",
   "uploadForm.title": "JSON Translation Tool",
   "uploadForm.tutorialButton": "Java Mod Translation Tutorial",
   "uploadForm.emailContact": "Email me at h{'@'}lvjia.cc if you need it",

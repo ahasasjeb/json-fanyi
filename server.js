@@ -60,7 +60,7 @@ const client = new OpenAI({
 })
 
 // Create a concurrency limiter
-const limit = pLimit(10)
+const limit = pLimit(7)
 
 // Add delay between retries
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

@@ -584,6 +584,7 @@ let recaptchaRefreshInterval: ReturnType<typeof setInterval>
         {{ t('uploadForm.modelInfo') }}<br />
         <br />{{ t('uploadForm.mcInfo') }}<br />
         <code>h@lvjia.cc</code><br />
+        {{ t('no.money') }}<br />
         {{ t('uploadForm.emailContact') }}
       </p>
       <n-loading-bar-provider>

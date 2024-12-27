@@ -59,5 +59,8 @@
   "jsonError5": "JSON file contains",
   "error4": "Error:",
   "jsonError6": "Key-value pairs, exceeding the limit of 1000",
-  "Error3": "Error processing translation data"
+  "Error3": "Error processing translation data",
+  "no": {
+    "money": "If you find that you can't translate it, most likely the site's key is out of funds, let me know via email!"
+  }
 }

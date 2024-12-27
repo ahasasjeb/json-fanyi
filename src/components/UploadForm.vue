@@ -45,6 +45,18 @@ const handleLanguageChange = (value: string) => {
 
 // 添加模型选择选项
 const modelOptions = [
+  {
+    label: 'mc翻译微调 gpt-4o v4-4 完全体',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj2227Q3',
+  },
+  {
+    label: 'mc翻译微调 gpt-4o v4-4 75步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj222rfj:ckpt-step-75',
+  },
+  {
+    label: 'mc翻译微调 gpt-4o v4-4 60步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj222563:ckpt-step-60',
+  },
   { label: 'mc微调 gpt-4o v3 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv3:AiKQESm1' },
   {
     label: 'mc翻译微调 gpt-4o v3 1018步进',

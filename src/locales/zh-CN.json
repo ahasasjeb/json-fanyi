@@ -15,6 +15,7 @@
   "uploadForm.privacyDesc": "我们仅收集匿名访问统计，不含个人信息",
   "uploadForm.learnMore": "了解更多",
   "uploadForm.disagree": "不用了",
+  "uploadForm.dntEnabledPrevious": "已启用请勿追踪，虽然曾经同意过，但现在开启了DNT，我们将不会收集任何统计信息",
   "uploadForm.agree": "同意",
   "uploadForm.later": "稍后再说",
   "uploadForm.noTranslation": "没有可保存的翻译内容",
@@ -60,7 +61,5 @@
   "Upload.error": "上传失败",
   "jsonError5": "JSON文件包含",
   "jsonError6": "个键值对，超过了1000个的限制",
-  "no": {
-    "money": "如果你发现无法翻译，多半是网站的key没资金了，通过邮箱告诉我。"
-  }
+  "no.money": "如果你发现无法翻译，多半是网站的key没资金了，通过邮箱告诉我。"
 }

@@ -452,40 +452,48 @@ app.get('/api/translate/active-count', (req, res) => {
 app.post('/api/send-translation', async (req, res) => {
   try {
     const { email, translatedContent, originalFileName } = req.body
+    console.log('Received email request:', {
+      email,
+      contentLength: translatedContent?.length,
+      filename: originalFileName,
+    })
 
     if (!email || !translatedContent) {
       return res.status(400).json({
-        error: 'Missing required fields',
-        details: 'Email and translated content are required',
+        error: '缺少必要字段',
+        details: '邮箱和翻译内容是必需的',
       })
     }
 
-    // 验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return res.status(400).json({
-        error: 'Invalid email format',
-        details: 'Please provide a valid email address',
+        error: '邮箱格式无效',
+        details: '请提供有效的邮箱地址',
       })
     }
 
-    // 验证翻译内容格式
     try {
       JSON.parse(translatedContent)
     } catch (e) {
       return res.status(400).json({
-        error: 'Invalid JSON content',
-        details: 'The translated content must be valid JSON',
+        error: 'JSON格式无效',
+        details: '翻译内容必须是有效的JSON格式',
       })
     }
 
-    await sendTranslationEmail(email, translatedContent, originalFileName)
-    res.json({ message: 'Translation sent successfully' })
+    const result = await sendTranslationEmail(email, translatedContent, originalFileName)
+    console.log('Email sent result:', result)
+
+    res.json({
+      message: '翻译结果已成功发送',
+      messageId: result.messageId,
+    })
   } catch (error) {
-    console.error('Detailed error in send-translation route:', error)
+    console.error('Email sending error:', error)
     res.status(500).json({
-      error: 'Failed to send translation',
-      details: isDevelopment ? error.message : '邮件发送失败，请稍后重试',
+      error: '邮件发送失败',
+      details: error.message,
     })
   }
 })

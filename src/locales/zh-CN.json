@@ -64,5 +64,11 @@
   "no.money": "如果你发现无法翻译，多半是网站的key没资金了，通过邮箱告诉我。",
   "uploadForm.invalidEmailOrContent": "无效的电子邮件或内容",
   "uploadForm.emailSendError": "邮件发送出错",
-  "uploadForm.emailSentSuccess": "邮件发送成功"
+  "uploadForm.emailSentSuccess": "邮件发送成功",
+  "uploadForm.sendEmail": "发送到邮箱",
+  "uploadForm.sendEmailTitle": "发送翻译到邮箱",
+  "uploadForm.emailAddress": "邮箱地址",
+  "uploadForm.emailPlaceholder": "请输入您的邮箱地址",
+  "uploadForm.send": "发送",
+  "uploadForm.cancel": "取消"
 }

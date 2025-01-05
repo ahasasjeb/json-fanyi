@@ -64,5 +64,11 @@
   "no.money": "If you find something untranslatable, it's probably because the website is out of money; email me.",
   "uploadForm.emailSendError": "Email send error",
   "uploadForm.emailSentSuccess": "Email sent Success",
-  "uploadForm.invalidEmailOrContent": "invalid Email Or Content"
+  "uploadForm.invalidEmailOrContent": "invalid Email Or Content",
+  "uploadForm.sendEmail": "Send to Email",
+  "uploadForm.sendEmailTitle": "Send Translation to Email",
+  "uploadForm.emailAddress": "Email Address",
+  "uploadForm.emailPlaceholder": "Enter your email address",
+  "uploadForm.send": "Send",
+  "uploadForm.cancel": "Cancel"
 }

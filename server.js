@@ -448,28 +448,44 @@ app.get('/api/translate/active-count', (req, res) => {
   })
 })
 
-// 添加发送翻译结果的路由
+// 修改发送翻译结果的路由
 app.post('/api/send-translation', async (req, res) => {
   try {
     const { email, translatedContent, originalFileName } = req.body
 
     if (!email || !translatedContent) {
-      return res.status(400).json({ error: 'Missing required fields' })
+      return res.status(400).json({
+        error: 'Missing required fields',
+        details: 'Email and translated content are required',
+      })
     }
 
     // 验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' })
+      return res.status(400).json({
+        error: 'Invalid email format',
+        details: 'Please provide a valid email address',
+      })
+    }
+
+    // 验证翻译内容格式
+    try {
+      JSON.parse(translatedContent)
+    } catch (e) {
+      return res.status(400).json({
+        error: 'Invalid JSON content',
+        details: 'The translated content must be valid JSON',
+      })
     }
 
     await sendTranslationEmail(email, translatedContent, originalFileName)
     res.json({ message: 'Translation sent successfully' })
   } catch (error) {
-    console.error('Error sending translation:', error)
+    console.error('Detailed error in send-translation route:', error)
     res.status(500).json({
       error: 'Failed to send translation',
-      details: isDevelopment ? error.stack : undefined,
+      details: isDevelopment ? error.message : '邮件发送失败，请稍后重试',
     })
   }
 })

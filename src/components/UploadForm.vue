@@ -562,6 +562,47 @@ const fetchActiveTaskCount = async () => {
 // 每30秒更新一次活动任务数量
 let taskCountInterval: ReturnType<typeof setInterval>
 let recaptchaRefreshInterval: ReturnType<typeof setInterval>
+
+// 在已有的 imports 后添加
+const showEmailModal = ref(false)
+const emailAddress = ref('')
+const sendingEmail = ref(false)
+
+// 添加邮件发送相关函数
+const handleSendEmail = async () => {
+  if (!emailAddress.value || !translatedContent.value) {
+    message.error(t('uploadForm.invalidEmailOrContent'))
+    return
+  }
+
+  try {
+    sendingEmail.value = true
+    const response = await fetch(`${API_BASE_URL}/api/send-translation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: emailAddress.value,
+        translatedContent: translatedContent.value,
+        originalFileName: originalFileName.value,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || t('uploadForm.emailSendError'))
+    }
+
+    message.success(t('uploadForm.emailSentSuccess'))
+    showEmailModal.value = false
+    emailAddress.value = ''
+  } catch (error) {
+    message.error((error as Error).message)
+  } finally {
+    sendingEmail.value = false
+  }
+}
 </script>
 
 <template>
@@ -624,6 +665,9 @@ let recaptchaRefreshInterval: ReturnType<typeof setInterval>
 
         <n-button type="primary" :disabled="!translatedContent" @click="saveToFile">
           {{ t('uploadForm.saveButton') }}
+        </n-button>
+        <n-button type="info" :disabled="!translatedContent" @click="showEmailModal = true">
+          {{ t('uploadForm.sendEmail') }}
         </n-button>
       </n-space>
 
@@ -705,6 +749,34 @@ let recaptchaRefreshInterval: ReturnType<typeof setInterval>
           <h3>{{ t('uploadForm.privacyModalSubtitle') }}</h3>
           <p>{{ t('uploadForm.privacyModalContent') }}</p>
         </div>
+      </n-modal>
+
+      <!-- 添加邮件发送对话框 -->
+      <n-modal
+        v-model:show="showEmailModal"
+        :title="t('uploadForm.sendEmailTitle')"
+        preset="dialog"
+        :loading="sendingEmail"
+      >
+        <n-form>
+          <n-form-item :label="t('uploadForm.emailAddress')">
+            <n-input
+              v-model:value="emailAddress"
+              type="email"
+              :placeholder="t('uploadForm.emailPlaceholder')"
+            />
+          </n-form-item>
+        </n-form>
+        <template #action>
+          <n-space>
+            <n-button @click="showEmailModal = false">
+              {{ t('uploadForm.cancel') }}
+            </n-button>
+            <n-button type="primary" :loading="sendingEmail" @click="handleSendEmail">
+              {{ t('uploadForm.send') }}
+            </n-button>
+          </n-space>
+        </template>
       </n-modal>
     </n-card>
   </div>

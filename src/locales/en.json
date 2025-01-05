@@ -61,5 +61,8 @@
   "Upload.error": "Upload failed",
   "jsonError5": "JSON file contains",
   "jsonError6": "Key-value pair exceeds limit of 1000",
-  "no.money": "If you find something untranslatable, it's probably because the website is out of money; email me."
+  "no.money": "If you find something untranslatable, it's probably because the website is out of money; email me.",
+  "uploadForm.emailSendError": "Email send error",
+  "uploadForm.emailSentSuccess": "Email sent Success",
+  "uploadForm.invalidEmailOrContent": "invalid Email Or Content"
 }

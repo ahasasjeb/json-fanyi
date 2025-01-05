@@ -8,6 +8,7 @@ import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
 import pLimit from 'p-limit'
 import fetch from 'node-fetch' // 添加这个导入
+import { sendTranslationEmail } from './emailService.js'
 
 // 修改环境变量判断，支持 Windows
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -445,6 +446,32 @@ app.get('/api/translate/active-count', (req, res) => {
     activeCount,
     totalTasks: activeTranslations.size,
   })
+})
+
+// 添加发送翻译结果的路由
+app.post('/api/send-translation', async (req, res) => {
+  try {
+    const { email, translatedContent, originalFileName } = req.body
+
+    if (!email || !translatedContent) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' })
+    }
+
+    await sendTranslationEmail(email, translatedContent, originalFileName)
+    res.json({ message: 'Translation sent successfully' })
+  } catch (error) {
+    console.error('Error sending translation:', error)
+    res.status(500).json({
+      error: 'Failed to send translation',
+      details: isDevelopment ? error.stack : undefined,
+    })
+  }
 })
 
 // 添加清理过期翻译的功能

@@ -38,6 +38,13 @@ app.use(
   }),
 )
 
+// 添加 JSON 解析中间件
+app.use(
+  express.json({
+    limit: '3mb', // 设置JSON请求体大小限制
+  }),
+)
+
 // Configure multer for handling file uploads
 const upload = multer({
   limits: {
@@ -448,10 +455,22 @@ app.get('/api/translate/active-count', (req, res) => {
   })
 })
 
-// 修改发送翻译结果的路由
+// 修改发送翻译结果的路由，添加请求体验证
 app.post('/api/send-translation', async (req, res) => {
   try {
+    // 验证请求体是否存在
+    if (!req.body) {
+      return res.status(400).json({
+        error: '无效的请求',
+        details: '请求体不能为空',
+      })
+    }
+
     const { email, translatedContent, originalFileName } = req.body
+
+    // 打印请求体内容以进行调试
+    console.log('Request body:', req.body)
+
     console.log('Received email request:', {
       email,
       contentLength: translatedContent?.length,

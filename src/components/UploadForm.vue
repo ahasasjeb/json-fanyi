@@ -45,13 +45,19 @@ const handleLanguageChange = (value: string) => {
 
 // 添加模型选择选项
 const modelOptions = [
+  { label: 'mc翻译微调 gpt-4o v5 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNj00o' },
   {
-    label: 'mc翻译微调 gpt-4o v4-4 完全体',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj2227Q3',
+    label: 'GPT 4o mini',
+    value: 'gpt-4o-mini',
+  },
+  { label: 'deepseek-chat 非Mc相关首选', value: 'deepseek-chat' },
+  {
+    label: 'mc翻译微调 gpt-4o v5 40步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNi769:ckpt-step-40',
   },
   {
-    label: 'gpt-4o-mini',
-    value: 'gpt-4o-mini',
+    label: 'mc翻译微调 gpt-4o v5 80步进',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNiQvo:ckpt-step-80',
   },
   {
     label: 'mc翻译微调 gpt-4o v4-4 75步进',
@@ -60,6 +66,10 @@ const modelOptions = [
   {
     label: 'mc翻译微调 gpt-4o v4-4 60步进',
     value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj222563:ckpt-step-60',
+  },
+  {
+    label: 'mc翻译微调 gpt-4o v4-4 完全体',
+    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj2227Q3',
   },
   { label: 'mc微调 gpt-4o v3 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv3:AiKQESm1' },
   {
@@ -80,7 +90,6 @@ const modelOptions = [
     value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY2B65:ckpt-step-509',
   },
   { label: 'mc翻译微调gpt-4o v1', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc-lvjia:AiCudjZt' },
-  { label: 'deepseek-chat 非Mc相关首选', value: 'deepseek-chat' },
 ]
 const selectedModel = ref(modelOptions[0].value)
 

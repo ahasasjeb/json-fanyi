@@ -34,7 +34,7 @@ export async function sendTranslationEmail(recipientEmail, translatedContent, or
     console.log('Original filename:', originalFileName)
 
     const mailOptions = {
-      from: '"JSON翻译服务" <1196444919@qq.com>', // 添加发件人名称
+      from: '1196444919@qq.com', // 添加发件人名称
       to: recipientEmail,
       subject: 'Your Translation Result 您的翻译结果',
       text: 'Please find your translation result attached.\n请查收附件中的翻译结果。',

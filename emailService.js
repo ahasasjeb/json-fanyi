@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.qq.com',
+  host: 'smtp.126.com',
   port: 465,
   secure: true,
   auth: {
-    user: '1196444919@qq.com',
-    pass: 'zgxjocgucnhshcdj',
+    user: 'json_lvjia_cc@126.com',
+    pass: 'VYdwTbhH55LmwKtD',
   },
 })
 
@@ -34,7 +34,7 @@ export async function sendTranslationEmail(recipientEmail, translatedContent, or
     console.log('Original filename:', originalFileName)
 
     const mailOptions = {
-      from: '1196444919@qq.com', // 添加发件人名称
+      from: 'json_lvjia_cc@126.com', // 添加发件人名称
       to: recipientEmail,
       subject: 'Your Translation Result 您的翻译结果',
       text: 'Please find your translation result attached.\n请查收附件中的翻译结果。',

@@ -19,10 +19,7 @@ const currentEventSource = ref<EventSource | null>(null)
 const currentReader = ref<FileReader | null>(null)
 const contentChunks = ref<string[]>([])
 const totalChunks = ref(0)
-const showTrackingDialog = ref(false)
-const hasUserConsent = ref(false)
 const JavaMc = ref(false)
-const showPrivacyDetails = ref(false)
 
 const activeTaskCount = ref(0)
 const totalTaskCount = ref(0)
@@ -161,79 +158,43 @@ const validateJson = (file: File): Promise<boolean> => {
     reader.readAsText(file)
   })
 }
-// 检查 Do Not Track 设置和用户同意状态
-const checkTrackingConsent = () => {
-  if (navigator.doNotTrack === '1') {
-    message.success(t('uploadForm.dntEnabled'))
-    return true
-  }
-  // 检查本地存储中的用户同意状态
-  const storedConsent = localStorage.getItem('userTrackingConsent')
-  if (storedConsent === 'false') {
-    hasUserConsent.value = false
-    return false
-  }
-  if (storedConsent === 'true') {
-    hasUserConsent.value = true
-    return true
-  }
-  showTrackingDialog.value = true
-  return false
-}
 
-const handleTrackingConsent = (agreed: boolean) => {
-  hasUserConsent.value = agreed
-  localStorage.setItem('userTrackingConsent', agreed.toString())
-  showTrackingDialog.value = false
-  if (agreed) {
-    // 发送指纹数据到后端
+const sendVisitorData = () => {
+  // 直接发送指纹数据到后端
+  if (visitorStore.visitorId) {
     sendFingerprint(visitorStore.visitorId)
-    message.success(t('uploadForm.thankYou') + visitorStore.visitorId)
     console.log(t('id1'), visitorStore.visitorId)
   }
 }
 
-// 在组件挂载时检查用户同意状态
+// 在组件挂载时直接发送数据
 onMounted(async () => {
-  const storedConsent = localStorage.getItem('userTrackingConsent')
-  if (storedConsent === 'true') {
-    hasUserConsent.value = true
-    // 等待指纹计算完成
-    await new Promise<void>((resolve) => {
-      const checkVisitorId = () => {
-        if (visitorStore.visitorId) {
-          // 发送指纹数据到后端
-          if (navigator.doNotTrack === '1') {
-            message.success(t('uploadForm.dntEnabledPrevious'))
-            console.log(t('UserT'))
-          } else {
-            sendFingerprint(visitorStore.visitorId)
-            message.success(t('uploadForm.thankYou') + visitorStore.visitorId)
-            console.log(t('id1'), visitorStore.visitorId)
-            resolve()
-          }
-        } else {
-          setTimeout(checkVisitorId, 100) // 每100ms检查一次
-        }
-      }
-      checkVisitorId()
-    })
-  } else {
-    checkTrackingConsent()
-  }
   const savedLanguage = localStorage.getItem('userLanguage')
   if (savedLanguage) {
     locale.value = savedLanguage
   }
+
+  // 等待指纹计算完成后直接发送
+  await new Promise<void>((resolve) => {
+    const checkVisitorId = () => {
+      if (visitorStore.visitorId) {
+        sendVisitorData()
+        resolve()
+      } else {
+        setTimeout(checkVisitorId, 100)
+      }
+    }
+    checkVisitorId()
+  })
+
   fetchActiveTaskCount()
   taskCountInterval = setInterval(fetchActiveTaskCount, 3000)
-  // 等待首次 reCAPTCHA 验证
   await recaptchaVerifier.value?.reset()
   recaptchaRefreshInterval = setInterval(() => {
     if (!loading.value) {
       recaptchaVerifier.value?.reset()
     }
-  }, 110000) // 每110秒刷新一次token
+  }, 110000)
 })
 
 // 收集指纹数据并发送到后端
@@ -298,11 +259,6 @@ const customRequest = async ({ file }: UploadCustomRequestOptions) => {
       await recaptchaVerifier.value?.reset()
       resetState()
       return
-    }
-
-    // 如果 DNT 未开启且用户未做出选择，显示对话框
-    if (!navigator.doNotTrack && !localStorage.getItem('userTrackingConsent')) {
-      showTrackingDialog.value = true
     }
 
     // 关闭之前的连接和清理
@@ -512,17 +468,6 @@ const saveToFile = () => {
   }
 }
 
-const postponeTracking = () => {
-  showTrackingDialog.value = false
-  // 24小时后再次显示
-  setTimeout(
-    () => {
-      showTrackingDialog.value = true
-    },
-    24 * 60 * 60 * 1000,
-  )
-}
-
 // 添加响应式宽度计算
 const getDrawerWidth = () => {
   // 获取视窗宽度
@@ -701,55 +646,6 @@ const handleSendEmail = async () => {
       <div v-if="translatedContent" class="result">
         <pre>{{ translatedContent }}</pre>
       </div>
-      <n-card
-        v-if="showTrackingDialog"
-        :bordered="false"
-        style="
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          z-index: 1000;
-          background: rgba(255, 255, 255, 0.95);
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-        "
-      >
-        <n-space align="center" justify="space-between">
-          <div>
-            <p style="margin: 0">{{ t('uploadForm.privacyTitle') }}</p>
-            <p style="font-size: 0.9em; color: #666; margin: 4px 0">
-              {{ t('uploadForm.privacyDesc') }}
-              <n-button text type="primary" @click="showPrivacyDetails = true">
-                {{ t('uploadForm.learnMore') }}
-              </n-button>
-            </p>
-          </div>
-          <n-space>
-            <n-button size="small" @click="handleTrackingConsent(false)">
-              {{ t('uploadForm.disagree') }}
-            </n-button>
-            <n-button size="small" type="primary" @click="handleTrackingConsent(true)">
-              {{ t('uploadForm.agree') }}
-            </n-button>
-            <n-button size="small" quaternary @click="postponeTracking">
-              {{ t('uploadForm.later') }}
-            </n-button>
-          </n-space>
-        </n-space>
-      </n-card>
-
-      <!-- 隐私详情对话框 -->
-      <n-modal
-        v-model:show="showPrivacyDetails"
-        style="width: 600px"
-        :title="t('uploadForm.privacyModalTitle')"
-        preset="card"
-      >
-        <div style="font-size: 14px; line-height: 1.6">
-          <h3>{{ t('uploadForm.privacyModalSubtitle') }}</h3>
-          <p>{{ t('uploadForm.privacyModalContent') }}</p>
-        </div>
-      </n-modal>
 
       <!-- 添加邮件发送对话框 -->
       <n-modal

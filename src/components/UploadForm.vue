@@ -57,37 +57,6 @@ const modelOptions = [
     label: 'mc翻译微调 gpt-4o v5 80步进',
     value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNiQvo:ckpt-step-80',
   },
-  {
-    label: 'mc翻译微调 gpt-4o v4-4 75步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj222rfj:ckpt-step-75',
-  },
-  {
-    label: 'mc翻译微调 gpt-4o v4-4 60步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj222563:ckpt-step-60',
-  },
-  {
-    label: 'mc翻译微调 gpt-4o v4-4 完全体',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv4-4:Aj2227Q3',
-  },
-  { label: 'mc微调 gpt-4o v3 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv3:AiKQESm1' },
-  {
-    label: 'mc翻译微调 gpt-4o v3 1018步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv3:AiKQDz2D:ckpt-step-1018',
-  },
-  {
-    label: 'mc翻译微调 gpt-4o v3 509步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv3:AiKQDz2D:ckpt-step-509',
-  },
-  { label: 'mc翻译微调 gpt-4o v2 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY38Zo' },
-  {
-    label: 'mc翻译微调 gpt-4o v2 1018步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY2zLC:ckpt-step-1018',
-  },
-  {
-    label: 'mc翻译微调 gpt-4o v2 509步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc:AiEY2B65:ckpt-step-509',
-  },
-  { label: 'mc翻译微调gpt-4o v1', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mc-lvjia:AiCudjZt' },
 ]
 const selectedModel = ref(modelOptions[0].value)
 

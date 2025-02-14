@@ -518,6 +518,11 @@ const handleSendEmail = async () => {
     sendingEmail.value = false
   }
 }
+
+// 添加跳转到聊天网站的函数
+const goToChatWebsite = () => {
+  window.open('https://chat.lvjia.cc', '_blank')
+}
 </script>
 
 <template>
@@ -583,6 +588,10 @@ const handleSendEmail = async () => {
         </n-button>
         <n-button type="info" :disabled="!translatedContent" @click="showEmailModal = true">
           {{ t('uploadForm.sendEmail') }}
+        </n-button>
+        <!-- 添加新按钮 -->
+        <n-button type="warning" @click="goToChatWebsite">
+          {{ t('uploadForm.chatWebsite') }}
         </n-button>
       </n-space>
 

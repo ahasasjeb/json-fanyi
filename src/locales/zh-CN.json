@@ -70,5 +70,6 @@
   "uploadForm.emailAddress": "邮箱地址",
   "uploadForm.emailPlaceholder": "请输入您的邮箱地址",
   "uploadForm.send": "发送",
-  "uploadForm.cancel": "取消"
+  "uploadForm.cancel": "取消",
+  "uploadForm.chatWebsite": "AI对话网站"
 }

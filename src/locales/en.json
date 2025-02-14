@@ -70,5 +70,6 @@
   "uploadForm.emailAddress": "Email Address",
   "uploadForm.emailPlaceholder": "Enter your email address",
   "uploadForm.send": "Send",
-  "uploadForm.cancel": "Cancel"
+  "uploadForm.cancel": "Cancel",
+  "uploadForm.chatWebsite": "AI Chat Website"
 }

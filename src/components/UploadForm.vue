@@ -46,17 +46,6 @@ const modelOptions = [
     label: 'GPT 4o mini',
     value: 'gpt-4o-mini',
   },
-  { label: 'mc翻译微调 gpt-4o v5 完全体', value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNj00o' },
-
-  { label: 'deepseek-chat 非Mc相关首选', value: 'deepseek-chat' },
-  {
-    label: 'mc翻译微调 gpt-4o v5 40步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNi769:ckpt-step-40',
-  },
-  {
-    label: 'mc翻译微调 gpt-4o v5 80步进',
-    value: 'ft:gpt-4o-mini-2024-07-18:lvjia:mcv5:AjfNiQvo:ckpt-step-80',
-  },
 ]
 const selectedModel = ref(modelOptions[0].value)
 

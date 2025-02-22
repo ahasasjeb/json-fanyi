@@ -35,6 +35,8 @@
   "uploadForm.privacyModalTitle": "Privacy",
   "uploadForm.tutorialContent2": "In the assets folder, there will be a non-Minecraft named folder. Open it, and the json files inside are language files.",
   "uploadForm.translationDirection.en2zh": "English → 中文",
+  "uploadForm.translationDirection.zh2zh_TW": "Simplified → Traditional",
+  "uploadForm.translationDirection.zh_TW2zh": "Traditional → Simplified",
   "uploadForm.tutorialContent4": "If you unzipped it, zip it back to a standard zip format, ensuring the top-level directory is not a single folder, and it's likely zipped successfully, then rename it to jar.",
   "uploadForm.activeTaskCount": "Active Translation Tasks",
   "uploadForm.serverError": "I had some weird errors before, but restarting the server fixed it. Very weird.",

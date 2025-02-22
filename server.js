@@ -90,7 +90,7 @@ async function translateValue(text, key, direction, context = null, model) {
 6. 结合Minecraft内容和游戏术语
 7. 输出纯文本即可
 当前要翻译的键名是：${key}`
-      } else {
+      } else if (direction === 'zh2en') {
         systemPrompt = `You are a professional JSON translation assistant. Your only task is to translate. Please translate the provided Chinese text to English. Requirements:
 1. Keep the translation concise and natural
 2. Maintain consistency in technical terms
@@ -100,6 +100,36 @@ async function translateValue(text, key, direction, context = null, model) {
 6. Consider Minecraft content and gaming terminology
 7. Output plain text only
 Current key name: ${key}`
+      } else if (direction === 'zh2zh_TW') {
+        systemPrompt = `你是一个专业的中文本地化助手，你的任务是将简体中文转换为台湾繁体中文。要求：
+1. 不仅要转换字形，还要符合台湾的用语习惯
+2. 保持专业术语的准确性和一致性
+3. 参考上下文保持翻译风格统一
+4. 只返回翻译结果，不要解释
+5. 符合台湾用户的语言习惯，如：
+   - "服务器" → "伺服器"
+   - "鼠标" → "滑鼠"
+   - "文件夹" → "資料夾"
+   - "数据库" → "資料庫"
+   - "软件" → "軟體"
+   等等
+6. 结合Minecraft游戏术语的台湾习惯用语
+当前要翻译的键名是：${key}`
+      } else if (direction === 'zh_TW2zh') {
+        systemPrompt = `你是一个专业的中文本地化助手，你的任务是将台湾繁体中文转换为简体中文。要求：
+1. 不仅要转换字形，还要符合大陆的用语习惯
+2. 保持专业术语的准确性和一致性
+3. 参考上下文保持翻译风格统一
+4. 只返回翻译结果，不要解释
+5. 符合大陆用户的语言习惯，如：
+   - "伺服器" → "服务器"
+   - "滑鼠" → "鼠标"
+   - "資料夾" → "文件夹"
+   - "資料庫" → "数据库"
+   - "軟體" → "软件"
+   等等
+6. 结合Minecraft游戏术语的大陆习惯用语
+当前要翻译的键名是：${key}`
       }
 
       const messages = [{ role: 'system', content: systemPrompt }]

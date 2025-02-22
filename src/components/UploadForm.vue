@@ -32,6 +32,8 @@ const languageOptions = [
 const translationDirectionOptions = [
   { label: t('uploadForm.translationDirection.en2zh'), value: 'en2zh' },
   { label: t('uploadForm.translationDirection.zh2en'), value: 'zh2en' },
+  { label: t('uploadForm.translationDirection.zh2zh_TW'), value: 'zh2zh_TW' },
+  { label: t('uploadForm.translationDirection.zh_TW2zh'), value: 'zh_TW2zh' },
 ]
 const translationDirection = ref('en2zh')
 // 添加语言切换处理函数

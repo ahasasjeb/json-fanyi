@@ -40,6 +40,8 @@
   "uploadForm.serverError": "之前出现了莫名其妙的错误，我重启了一下服务端就好了，非常莫名其妙。",
   "uploadForm.translationDirection.en2zh": "English → 中文",
   "uploadForm.translationDirection.zh2en": "中文 → English",
+  "uploadForm.translationDirection.zh2zh_TW": "简体 → 繁体",
+  "uploadForm.translationDirection.zh_TW2zh": "繁体 → 简体",
   "uploadForm.waitingForRecaptcha": "请等待人机验证完成",
   "uploadForm.timeoutWarning": "翻译超时",
   "uploadForm.dataError": "解析数据时出错",

@@ -649,17 +649,65 @@ const goToChatWebsite = () => {
 </template>
 
 <style scoped>
+.container {
+  min-height: 100vh;
+  position: relative;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* 动态背景 */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96c3eb);
+  background-size: 400% 400%;
+  z-index: -2;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 毛玻璃效果卡片 */
+:deep(.n-card) {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
 .current-key {
   margin-top: 8px;
   font-size: 14px;
-  color: #666;
+  color: #4a4a4a;
+  backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.3);
+  padding: 8px;
+  border-radius: 8px;
 }
 
 .result {
   margin-top: 1rem;
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .result pre {
@@ -667,35 +715,51 @@ const goToChatWebsite = () => {
   word-wrap: break-word;
   max-height: 400px;
   overflow-y: auto;
+  color: #2c3e50;
 }
 
 .drawer-content {
   font-size: 14px;
   line-height: 1.6;
   padding: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
 }
 
-@media screen and (max-width: 768px) {
-  .drawer-content {
-    font-size: 16px;
-    padding: 12px;
-  }
-}
-
-/* 添加新的样式 */
 .controls-container {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
 }
 
 .task-count {
   font-size: 14px;
-  color: #666;
-  margin-left: auto; /* 将计数器推到右侧 */
-  white-space: nowrap; /* 防止文本换行 */
+  color: #2c3e50;
+  margin-left: auto;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 滚动条样式 */
+.result pre::-webkit-scrollbar {
+  width: 8px;
+}
+
+.result pre::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.result pre::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 /* 响应式布局 */
@@ -709,6 +773,12 @@ const goToChatWebsite = () => {
     margin-left: 0;
     margin-top: 8px;
     width: 100%;
+    text-align: center;
+  }
+
+  .drawer-content {
+    font-size: 16px;
+    padding: 12px;
   }
 }
 </style>
